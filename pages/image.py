@@ -62,7 +62,7 @@ def open_partial_match_page(name):
 # -----------------------------
 # Streamlit UI
 # -----------------------------
-st.title("ポケモンユナイト: AI高精度抽出 ＆ UniteAPI検索")
+st.title("UniteAPI検索")
 
 uploaded = st.file_uploader("フル画像をアップロードしてください", type=["png", "jpg", "jpeg"])
 
