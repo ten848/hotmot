@@ -1,7 +1,7 @@
 import sqlite3
 import pandas as pd
 
-DB_PATH = "C:/unitexyz/roles/pokemon_datas.db"
+DB_PATH = "roles/pokemon_datas.db"
 
 def get_conn():
     return sqlite3.connect(DB_PATH)   # DB に接続して Connection オブジェクトを返す
