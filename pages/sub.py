@@ -1,5 +1,7 @@
 import streamlit as st
+from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
+from streamlit_keypress import key_press_events
 import pandas as pd
 from db import read_table
 import os
@@ -32,152 +34,158 @@ st.markdown(
 #endregion
 
 #region teru
-col1, col2 = st.columns(2)
-with col1:
-    pass
-with col2:
+with st.sidebar:
     if "mode" not in st.session_state:
         st.session_state["mode"] = "ten"
 
-    # チェックボックスの状態を session_state["mode"] から構築
     is_teru = (st.session_state["mode"] == "teru")
 
-    # 状態変化を受け取る
     checked = st.checkbox("私はteruです", value=is_teru, key="teru_checkbox")
 
-    # 状態の同期
     st.session_state["mode"] = "teru" if checked else "ten"
 #endregion
 
-#region 1行目
-col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 2, 1])
-with col2:
-    selected_pokemon11 = st.selectbox("味方1",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon11]
+#region lanes
+selected_pokemon_A = {}
+selected_pokemon_B = {}
 
-with col1:
-    img_path = f"images/pokemon/{selected_pokemon11}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/紫icon_unite.jpg", width=100)
+if "waiting" not in st.session_state:
+    st.session_state["waiting"] = [0] * 6
 
-with col4:
-    selected_pokemon12 = st.selectbox("敵1",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon12]
+if "lanes_arrow" not in st.session_state:
+    st.session_state["lanes_arrow"] = [None] * 6
 
-with col5:
-    img_path = f"images/pokemon/{selected_pokemon12}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/橙icon_unite.jpg", width=100)
+if "lanes" not in st.session_state:
+    st.session_state["lanes"] = [None] * 6
+
+
+img_top = Image.open(f"images/UI/top_lane.png").convert("RGBA")
+img_center = Image.open(f"images/UI/center_lane.png").convert("RGBA")
+img_bottom = Image.open(f"images/UI/bottom_lane.png").convert("RGBA")
+
+img_top = img_top.resize((50,50))
+img_center = img_center.resize((50,50))
+img_bottom = img_bottom.resize((50,50))
+
+# st.markdown("""
+#     <style>
+#     [data-testid= "stToast"] {position: absolute; top: 0px; left: -500px; width: 150px; height: 100px; min-height: 0px; z-index: 10}
+#     [data-testid= "stToast"] * {font-size: 10px}
+#     </style>
+#     """,
+#     unsafe_allow_html= True)
+
+# st.write("waiting:", st.session_state["waiting"][1:])
+# st.write("lanes_arrow:", st.session_state["lanes_arrow"][1:])
 #endregion
 
-#region 2行目
-col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 2, 1])
-with col2:
-    selected_pokemon21 = st.selectbox("味方2",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon21]
+#region 入力欄
+for x in range(1,6):
+    col1, col2, col3, col4, col5= st.columns([1, 2, 2, 2, 1])
+    with col2:
+        selected_pokemon_A[x] = st.selectbox(f"味方{x}",df["name"])
 
-with col1:
-    img_path = f"images/pokemon/{selected_pokemon21}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/紫icon_unite.jpg", width=100)
+    with col1:
+        if os.path.exists(f"images/pokemon/{selected_pokemon_A[x]}.png"):
+            img_copy = Image.open(f"images/pokemon/{selected_pokemon_A[x]}.png").convert("RGBA").copy()
+        
+        else:
+            img_copy = Image.open("images/UI/紫icon_unite.jpg").convert("RGBA").copy()
 
-with col4:
-    selected_pokemon22 = st.selectbox("敵2",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon22]
+        img_copy = img_copy.resize((100,100))
 
-with col5:
-    img_path = f"images/pokemon/{selected_pokemon22}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/橙icon_unite.jpg", width=100)
-#endregion
+        if st.session_state["lanes"][x]:
+            if st.session_state["lanes"] [x] == "上":
+                img_copy.paste(img_top, (-10,-15), img_top)
 
-#region 3行目
-col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 2, 1])
-with col2:
-    selected_pokemon31 = st.selectbox("味方3",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon31]
+            if st.session_state["lanes"] [x] == "中央":
+                img_copy.paste(img_center, (-10,-15), img_center)
 
-with col1:
-    img_path = f"images/pokemon/{selected_pokemon31}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/紫icon_unite.jpg", width=100)
+            if st.session_state["lanes"] [x] == "下":
+                img_copy.paste(img_bottom, (-10,-15), img_bottom)
 
-with col4:
-    selected_pokemon32 = st.selectbox("敵3",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon32]
+        st.image(img_copy)
 
-with col5:
-    img_path = f"images/pokemon/{selected_pokemon32}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/橙icon_unite.jpg", width=100)
-#endregion
+    with col3:
+        st.markdown("""
+        <style>
+        div.stButton > button {position: absolute; top: -16px; left: -128px;
+        width: 150px; height: 20px; min-height: 0px; margin-top: 0px}
+        div.stButton > button * {font-size: 10px}
+        </style>
+        """,
+        unsafe_allow_html= True)
+        if st.session_state["lanes"] [x] == None:
+            if st.button(f"レーン宣告", key=f"button1_{x}"):
+                st.session_state["waiting"] = [0] * 6
+                st.session_state["waiting"][x] = 1
+                st.rerun()
 
-#region 4行目
-col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 2, 1])
-with col2:
-    selected_pokemon41 = st.selectbox("味方4",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon41]
+        else:
+            if st.session_state["lanes"] [x] == "中央":
+                if st.button(f"中央エリアに行きます", key=f"button2_{x}"):
+                    st.session_state["waiting"] = [0] * 6
+                    st.session_state["waiting"][x] = 1
+                    st.rerun()
 
-with col1:
-    img_path = f"images/pokemon/{selected_pokemon41}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/紫icon_unite.jpg", width=100)
+            else:
+                if st.button(f"{st.session_state["lanes"] [x]}レーンに行きます", key=f"button3_{x}"):
+                    st.session_state["waiting"] = [0] * 6
+                    st.session_state["waiting"][x] = 1
+                    st.rerun()
 
-with col4:
-    selected_pokemon42 = st.selectbox("敵4",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon42]
+    # with col4:
+    #     if st.session_state["lanes"] [x] == "上" or st.session_state["lanes"] [x] == "下":
+    #         st.markdown(f"""
+    #             <div style ="ackground-color: #f0f2f6; border: 2px solid #4f46e5; 
+    #             border-radius: 8px; padding: 15px; font-size: 14px">  <br>{st.session_state["lanes"] [x]} レーンに <br>行きます </div>
+    #             """,
+    #             unsafe_allow_html = True
+    #         )
 
-with col5:
-    img_path = f"images/pokemon/{selected_pokemon42}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/橙icon_unite.jpg", width=100)
-#endregion
 
-#region 5行目
-col1, col2, col3, col4, col5 = st.columns([1, 2, 1, 2, 1])
-with col2:
-    selected_pokemon51 = st.selectbox("味方5",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon51]
+    with col4:
+        selected_pokemon_B[x] = st.selectbox(f"敵{x}",df["name"])
 
-with col1:
-    img_path = f"images/pokemon/{selected_pokemon51}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/紫icon_unite.jpg", width=100)
-
-with col4:
-    selected_pokemon52 = st.selectbox("敵5",df["name"])
-    filtered_df = df[df["name"] == selected_pokemon52]
-
-with col5:
-    img_path = f"images/pokemon/{selected_pokemon52}.png"
-    if os.path.exists(img_path):
-        st.image(img_path, width=100)
-    else:
-        st.image("images/UI/橙icon_unite.jpg", width=100)
+    with col5:
+        img_path = f"images/pokemon/{selected_pokemon_B[x]}.png"
+        if os.path.exists(img_path):
+            st.image(img_path, width=100)
+        else:
+            st.image("images/UI/橙icon_unite.jpg", width=100)
 #endregion
 
 #region Next
-col1, col2, col3 = st.columns([1,1.5,1])
+col1, col2, col3 = st.columns([1, 1.5, 1])
 with col2:
-    coords = streamlit_image_coordinates("images/UI/unite_start.png", key="img_click" , width = 300)
+    coords = streamlit_image_coordinates("images/UI/unite_start.png", key="img_click", width = 300)
     if coords is not None:
         st.switch_page("pages/map.py")
 #endregion
+
+events = key_press_events()
+
+if 1 not in st.session_state["waiting"]:
+    events = None
+
+for y in range(1,6):
+    if st.session_state["waiting"][y] == 1 and events:
+        st.session_state["lanes_arrow"][y] = events
+        if st.session_state["lanes_arrow"] [y] == "ArrowRight" or st.session_state["lanes_arrow"] [y] == "ArrowLeft":
+            st.session_state["lanes"] [y] = "中央"
+        if st.session_state["lanes_arrow"] [y] == "ArrowUp":
+            st.session_state["lanes"] [y] = "上"
+        if st.session_state["lanes_arrow"] [y] == "ArrowDown":
+            st.session_state["lanes"] [y] = "下"
+        
+        # if st.session_state["lanes"][y] is not None:
+        #     if st.session_state["lanes"] [y] == "中央":
+        #         st.toast("中央エリアに行きます")
+
+        #     else:
+        #         st.toast(f"{st.session_state["lanes"][y]}ルートに行きます")
+        
+        st.session_state["waiting"][y] = 0
+        st.rerun()
+
+# st.write("lanes:", st.session_state["lanes"][1:])
