@@ -1,81 +1,91 @@
-import streamlit as st
-from PIL import Image
-import google.generativeai as genai
+import time
 import urllib.parse
 import webbrowser
-import time
+from google import generativeai as genai
+from PIL import Image
+import streamlit as st
 
 if "GEMINI_API_KEY" in st.secrets:
-    genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+  genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 else:
-    st.error("APIキーが設定されていません。.streamlit/secrets.toml")
+  st.error("APIキーが設定されていません。.streamlit/secrets.toml")
+
 
 def crop_target_generated_area(img):
-    w, h = img.size
-    
-    # left = int(w * 0.08)
-    # right = int(w * 0.18)
-    # top = int(h * 0.64)
-    # bottom = int(h * 0.67)
+  w, h = img.size
 
-    # left = int(w * 0.08)
-    # right = int(w * 0.18)
-    # top = int(h * 0.50)
-    # bottom = int(h * 0.53)
-    # 0.14間隔
+  # 必要に応じて切り出し範囲を調整してください（現在は全画面）
+  left = int(w * 0)
+  right = int(w * 1)
+  top = int(h * 0)
+  bottom = int(h * 1)
 
-    left = int(w * 0)
-    right = int(w * 1)
-    top = int(h * 0)
-    bottom = int(h * 1)
+  box = (max(0, left), max(0, top), min(w, right), min(h, bottom))
+  return img.crop(box)
 
-    box = (max(0, left), max(0, top), min(w, right), min(h, bottom))
-    return img.crop(box)
 
 def extract_generated_with_ai(cropped_img):
-    model = genai.GenerativeModel('gemini-3.5-flash')
-    
-    prompt = (
-        "この画像はあるゲームのプレイヤー名が表示されている領域です。"
-        "プレイヤー名を正確に読み取り、"
-        "余分な説明や記号を一切含めず、**プレイヤー名のテキスト文字列だけ**を1行に1人ずつの改行で返してください。"
-    )
-    
-    try:
-        start_time = time.time()
-        response = model.generate_content([prompt, cropped_img])
-        end_time = time.time()
-        elapsed_time = end_time - start_time
-        st.write(f"【Gemini APIの処理時間】: {elapsed_time:.2f}秒")
-        generated = response.text.strip()
-        generated = generated.replace("`", "").strip()
-        targets = [line.strip() for line in generated.splitlines() if line.strip()]
-        return targets
-    except Exception as e:
-        st.error(f"Error: {e}")
-        return None
+  model = genai.GenerativeModel("gemini-3.5-flash")
 
-def open_partial_match_page(targets):
-    encoded = urllib.parse.quote(targets)
-    url = f"https://uniteapi.dev/jp/search?q={encoded}"
-    webbrowser.open(url)
+  # --- 【軽量化】AIに送る前に画像をリサイズ・圧縮 ---
+  img_to_send = cropped_img.copy()
+  img_to_send.thumbnail(
+      (1000, 1000), Image.Resampling.LANCZOS
+  )  # 長辺を最大1000pxに縮小
+  # --------------------------------------------------
+
+  prompt = (
+      "この画像はあるゲームのプレイヤー名が表示されている領域です。"
+      "プレイヤー名を正確に読み取り、"
+      "余分な説明や記号を一切含めず、**プレイヤー名のテキスト文字列だけ**を1行に1人ずつの改行で返してください。"
+  )
+
+  try:
+    start_time = time.time()
+    # 縮小した画像を送信
+    response = model.generate_content([prompt, img_to_send])
+    end_time = time.time()
+    elapsed_time = end_time - start_time
+    st.write(f"【Gemini APIの処理時間】: {elapsed_time:.2f}秒")
+
+    generated = response.text.strip()
+    generated = generated.replace("`", "").strip()
+    targets = [line.strip() for line in generated.splitlines() if line.strip()]
+    return targets
+  except Exception as e:
+    st.error(f"Error: {e}")
+    return None
+
+
+def open_partial_match_page(target_name):
+  encoded = urllib.parse.quote(target_name)
+  url = f"https://〇〇/jp/search?q={encoded}"
+  # ※クラウド環境の場合、webbrowser.openは手元のブラウザではなく
+  # サーバー側のブラウザで開こうとするため動作しないことがあります
+  webbrowser.open(url)
+
 
 st.title("UniteAPI")
 
-uploaded = st.file_uploader("フル画像をアップロードしてください", type=["png", "jpg", "jpeg"])
+uploaded = st.file_uploader(
+    "フル画像をアップロードしてください", type=["png", "jpg", "jpeg"]
+)
 
 if uploaded:
-    img = Image.open(uploaded)
-    
-    cropped = crop_target_generated_area(img)
-    
-    with st.spinner("なるほどなるほど..."):
-        targets = extract_generated_with_ai(cropped)
-    
-    st.write("解析終了:", targets if targets else "こんなの…データにないぞ…")
+  img = Image.open(uploaded)
 
-    st.image(cropped)
+  cropped = crop_target_generated_area(img)
 
-    if targets:
-        for name in targets:
-            open_partial_match_page(name)
+  with st.spinner("なるほどなるほど..."):
+    targets = extract_generated_with_ai(cropped)
+
+  st.write("解析終了:", targets if targets else "こんなの…データにないぞ…")
+
+  st.image(cropped)
+
+  if targets:
+    for name in targets:
+      encoded = urllib.parse.quote(name)
+      url = f"https://uniteapi.dev/jp/search?q={encoded}"
+      # クラウド上でも確実にリンクとして踏めるようにst.markdownを使うのがおすすめです
+      st.markdown(f"- [{name} ]({url})", unsafe_allow_html=True)
