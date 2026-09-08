@@ -47,7 +47,7 @@ st.markdown(
 col1,col2 = st.columns(2)
 with col1:
 	if st.button("点数記録"):
-		st.switch_page("pages/sub.py")
+		st.switch_page("pages/2_sub.py")
 with col2:
 	if st.button("勝敗記録"):
 		st.switch_page("pages/subsub.py")
@@ -69,15 +69,12 @@ with col2:
 
 # st.markdown(video_html, unsafe_allow_html=True)
 col1, col2, col3 = st.columns([1,2,1])
-with col1:
-    pass
 with col2:
 	st.image("images/UI/Oudou_RPG.png", width = 400)
-with col3:
-	pass
 
-selected_pokemon = st.selectbox("select",df["なまえ"])
-filtered_df = df[df["なまえ"] == selected_pokemon]
+
+selected_pokemon = st.selectbox("select",df["name"])
+filtered_df = df[df["name"] == selected_pokemon]
 
 st.write("### 詳細データ")
-st.table(df[df["name"] != " "][["name", "type", "role"]])
+st.table(df[df["name"] != " "][["name", "type", "role", "DPS"]])

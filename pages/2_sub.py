@@ -83,7 +83,7 @@ img_bottom = img_bottom.resize((50,50))
 for x in range(1,6):
     col1, col2, col3, col4, col5= st.columns([1, 2, 2, 2, 1])
     with col2:
-        selected_pokemon_A[x] = st.selectbox(f"味方{x}",df["name"])
+        selected_pokemon_A[x] = st.selectbox(f"味方{x}",df["name"]).split("(")[0]
 
     with col1:
         if os.path.exists(f"images/pokemon/{selected_pokemon_A[x]}.png"):

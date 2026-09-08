@@ -11,7 +11,7 @@ SUPPORT_DB = "roles/p_support.db"
 
 pokemon_datas = [
     {"名前":" ","なまえ":" ","name":" ","type":" ","role":" ","counters":["","",""],"DPS":0,"硬さ":0,"CC":0,"射程":0,"パワースパイク":0},
-    {"名前":"フシギバナ","なまえ":"ふしぎばな","name":"hushigibana","type":"アタック","role":"mage","counters":["dadarin","metagurosu","metagurosu"],"DPS":3,"硬さ":1,"CC":1,"射程":5,"パワースパイク":3},
+    {"名前":"フシギバナ","なまえ":"ふしぎばな","name":"hushigibana","type":"アタック","role":"mage","counters":["dadarin","metagurosu",""],"DPS":3,"硬さ":1,"CC":1,"射程":5,"パワースパイク":3},
     {"名前":"リザードン","なまえ":"りざーどん","name":"riza-don","type":"バランス","role":"fighter","counters":["","",""],"DPS":3,"硬さ":4,"CC":0,"射程":3,"パワースパイク":4},
     {"名前":"リザードンX","なまえ":"りざーどんX","name":"riza-donX","type":"バランス","role":"fighter","counters":["","",""],"DPS":2,"硬さ":3,"CC":3,"射程":3,"パワースパイク":4},
     {"名前":"リザードンY","なまえ":"りざーどんY","name":"riza-donY","type":"バランス","role":"mage","counters":["","",""],"DPS":3,"硬さ":3,"CC":0,"射程":3,"パワースパイク":4},

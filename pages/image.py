@@ -14,7 +14,6 @@ else:
 def crop_target_generated_area(img):
   w, h = img.size
 
-  # 必要に応じて切り出し範囲を調整してください（現在は全画面）
   left = int(w * 0)
   right = int(w * 1)
   top = int(h * 0)
@@ -27,12 +26,10 @@ def crop_target_generated_area(img):
 def extract_generated_with_ai(cropped_img):
   model = genai.GenerativeModel("gemini-3.5-flash")
 
-  # --- 【軽量化】AIに送る前に画像をリサイズ・圧縮 ---
   img_to_send = cropped_img.copy()
   img_to_send.thumbnail(
       (1000, 1000), Image.Resampling.LANCZOS
-  )  # 長辺を最大1000pxに縮小
-  # --------------------------------------------------
+  )
 
   prompt = (
       "この画像はあるゲームのプレイヤー名が表示されている領域です。"
@@ -42,7 +39,6 @@ def extract_generated_with_ai(cropped_img):
 
   try:
     start_time = time.time()
-    # 縮小した画像を送信
     response = model.generate_content([prompt, img_to_send])
     end_time = time.time()
     elapsed_time = end_time - start_time
@@ -59,9 +55,8 @@ def extract_generated_with_ai(cropped_img):
 
 def open_partial_match_page(target_name):
   encoded = urllib.parse.quote(target_name)
-  url = f"https://〇〇/jp/search?q={encoded}"
-  # ※クラウド環境の場合、webbrowser.openは手元のブラウザではなく
-  # サーバー側のブラウザで開こうとするため動作しないことがあります
+  url = f"https://uniteapi.dev/jp/search?q={encoded}"
+
   webbrowser.open(url)
 
 
@@ -87,5 +82,4 @@ if uploaded:
     for name in targets:
       encoded = urllib.parse.quote(name)
       url = f"https://uniteapi.dev/jp/search?q={encoded}"
-      # クラウド上でも確実にリンクとして踏めるようにst.markdownを使うのがおすすめです
       st.markdown(f"- [{name} ]({url})", unsafe_allow_html=True)
