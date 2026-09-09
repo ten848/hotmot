@@ -156,7 +156,7 @@ for x in range(1,6):
 #endregion
 
 #region Next
-col1, col2, col3 = st.columns([1, 1.5, 1])
+col1, col2, col3 = st.columns([1, 1.6, 1])
 with col2:
     coords = streamlit_image_coordinates("images/UI/unite_start.png", key="img_click", width = 300)
     if coords is not None:
