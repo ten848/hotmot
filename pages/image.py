@@ -24,7 +24,7 @@ def crop_target_generated_area(img):
 
 
 def extract_generated_with_ai(cropped_img):
-  model = genai.GenerativeModel("gemini-3.5-flash")
+  model = genai.GenerativeModel("gemini-3.5-flash-lite")
 
   img_to_send = cropped_img.copy()
   img_to_send.thumbnail(
@@ -63,7 +63,7 @@ def open_partial_match_page(target_name):
 st.title("UniteAPI")
 
 uploaded = st.file_uploader(
-    "フル画像をアップロードしてください", type=["png", "jpg", "jpeg"]
+    "フル画像をアップロードしてください", type=["png", "jpg", "jpeg", "pdf"]
 )
 
 if uploaded:
