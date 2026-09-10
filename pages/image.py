@@ -75,9 +75,11 @@ if uploaded:
   with st.spinner("なるほどなるほど..."):
     targets = extract_generated_with_ai(cropped)
 
-  st.write("解析終了:", targets if targets else "こんなの…データにないぞ…")
+  st.write("解析終了:"
+    # , targets if targets else "こんなの…データにないぞ…"
+    )
 
-  st.image(cropped)
+#   st.image(cropped)
 
   if targets:
     for name in targets:
@@ -85,8 +87,8 @@ if uploaded:
       url = f"https://uniteapi.dev/jp/search?q={encoded}"
       st.markdown(f"- [{name} ]({url})", unsafe_allow_html=True)
 
-with open("images/UI/korokku.txt", "r") as f:
-  korokku = f.read().strip()
+# with open("images/UI/korokku.txt", "r") as f:
+#   korokku = f.read().strip()
 
 # st.markdown(f"""
 #         <style>
