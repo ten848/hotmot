@@ -33,8 +33,10 @@ def extract_generated_with_ai(cropped_img):
 
   prompt = (
       "画像内のプレイヤー名だけを1行につき1つ返して。"
-
-
+    #   このゲーム画面の画像からプレイヤー名を正確に読み取り、
+    #   余分な説明や記号を一切含めず、
+    #   プレイヤー名のテキスト文字列だけを1行に1人ずつの改行で返してください。
+    #   みつからなければなにも返さないで。
   )
 
   try:
@@ -59,12 +61,11 @@ def open_partial_match_page(target_name):
 
   webbrowser.open(url)
 
-
-st.title("UniteAPI")
-
-uploaded = st.file_uploader(
-    "フル画像をアップロードしてください", type=["png", "jpg", "jpeg", "pdf"]
-)
+# st.write(
+#     "<span style='color: white; font-size: 40px'><br>&emsp;&emsp;データ、とらせてもらうよ。</span>",
+#     unsafe_allow_html=True,
+# )
+uploaded = st.file_uploader("データ、とらせてもらうよ。",type=["png", "jpg", "jpeg"])
 
 if uploaded:
   img = Image.open(uploaded)
@@ -83,3 +84,20 @@ if uploaded:
       encoded = urllib.parse.quote(name)
       url = f"https://uniteapi.dev/jp/search?q={encoded}"
       st.markdown(f"- [{name} ]({url})", unsafe_allow_html=True)
+
+with open("images/UI/korokku.txt", "r") as f:
+  korokku = f.read().strip()
+
+# st.markdown(f"""
+#         <style>
+#         .stApp {{
+#             background-image: url("data:image/jpeg;base64,{korokku}");
+#             background-size: cover;          /* 画面全体にフィットさせる */
+#             background-position: center;     /* 中央寄せ */
+#             background-repeat: no-repeat;    /* 繰り返さない */
+#             background-attachment: fixed;    /* スクロールしても固定 */
+#         }}
+#         </style>
+#         """,
+#         unsafe_allow_html = True
+#         )
