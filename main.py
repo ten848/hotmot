@@ -50,7 +50,7 @@ with col1:
 		st.switch_page("pages/2_sub.py")
 with col2:
 	if st.button("分析開始..."):
-		st.switch_page("pages/subsub.py")
+		st.switch_page("pages/image.py")
 
 # import base64
 

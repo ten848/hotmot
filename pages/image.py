@@ -5,6 +5,30 @@ from google import generativeai as genai
 from PIL import Image
 import streamlit as st
 
+theme = st.get_option("theme.base")
+color = "black" if theme == "dark" else "white"
+
+st.markdown(
+    f"""
+    <style>
+        a.custom-link:link,
+        a.custom-link:visited,
+        a.custom-link:hover,
+        a.custom-link:active {{
+            color: {color} !important;
+            text-decoration: none !important;
+        }}
+    </style>
+
+    <p style="font-size:48px;">
+        <a href="/" target="_self" class="custom-link">
+            unitexyz.com
+        </a>
+    </p>
+    """,
+    unsafe_allow_html=True
+)
+
 if "GEMINI_API_KEY" in st.secrets:
   genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 else:

@@ -83,11 +83,11 @@ img_bottom = img_bottom.resize((50,50))
 for x in range(1,6):
     col1, col2, col3, col4, col5= st.columns([1, 2, 2, 2, 1])
     with col2:
-        selected_pokemon_A[x] = st.selectbox(f"味方{x}",df["name"]).split("(")[0]
+        selected_pokemon_A[x] = st.selectbox(f"味方{x}",df["name"])
 
     with col1:
-        if os.path.exists(f"images/pokemon/{selected_pokemon_A[x]}.png"):
-            img_copy = Image.open(f"images/pokemon/{selected_pokemon_A[x]}.png").convert("RGBA").copy()
+        if os.path.exists(f"images/pokemon/{selected_pokemon_A[x].split("(")[0]}.png"):
+            img_copy = Image.open(f"images/pokemon/{selected_pokemon_A[x].split("(")[0]}.png").convert("RGBA").copy()
         
         else:
             img_copy = Image.open("images/UI/紫icon_unite.jpg").convert("RGBA").copy()
@@ -148,7 +148,7 @@ for x in range(1,6):
         selected_pokemon_B[x] = st.selectbox(f"敵{x}",df["name"])
 
     with col5:
-        img_path = f"images/pokemon/{selected_pokemon_B[x]}.png"
+        img_path = f"images/pokemon/{selected_pokemon_B[x].split("(")[0]}.png"
         if os.path.exists(img_path):
             st.image(img_path, width=100)
         else:
