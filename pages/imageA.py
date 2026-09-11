@@ -1,6 +1,5 @@
 from google import genai
 from PIL import Image
-import streamlit as st
 import urllib.parse
 import webbrowser
 

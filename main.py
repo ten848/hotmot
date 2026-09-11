@@ -46,10 +46,10 @@ st.markdown(
 
 col1,col2 = st.columns(2)
 with col1:
-	if st.button("点数記録"):
+	if st.button("pick"):
 		st.switch_page("pages/2_sub.py")
 with col2:
-	if st.button("勝敗記録"):
+	if st.button("分析開始..."):
 		st.switch_page("pages/subsub.py")
 
 # import base64
@@ -77,4 +77,4 @@ selected_pokemon = st.selectbox("select",df["name"])
 filtered_df = df[df["name"] == selected_pokemon]
 
 st.write("### 詳細データ")
-st.table(df[df["name"] != " "][["name", "type", "role", "パワースパイク"]])
+st.table(df[df["name"] != " "][["name", "type", "role", "パワースパイク", "とくしゅ"]])
