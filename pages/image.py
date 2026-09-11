@@ -48,7 +48,7 @@ def crop_target_generated_area(img):
 
 
 def extract_generated_with_ai(cropped_img):
-  model = genai.GenerativeModel("gemini-3.5-flash-lite")
+  model = genai.GenerativeModel("gemini-3.5-flash")
 
   img_to_send = cropped_img.copy()
   img_to_send.thumbnail(
