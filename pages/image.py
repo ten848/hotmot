@@ -48,7 +48,7 @@ def crop_target_generated_area(img):
 
 
 def extract_generated_with_ai(cropped_img):
-  model = genai.GenerativeModel("gemini-3.5-flash")
+  model = genai.GenerativeModel("gemini-3.5-flash-lite")
 
   img_to_send = cropped_img.copy()
   img_to_send.thumbnail(
@@ -56,7 +56,7 @@ def extract_generated_with_ai(cropped_img):
   )
 
   prompt = (
-      "画像内のプレイヤー名「だけ」を1行につき1つ返して。"
+      "画像内のプレイヤー名「だけ」を1行につき1つ返して。ハングルや記号を含む場合もある"
     #   このゲーム画面の画像からプレイヤー名を正確に読み取り、
     #   余分な説明や記号を一切含めず、
     #   プレイヤー名のテキスト文字列だけを1行に1人ずつの改行で返してください。
