@@ -11,3 +11,21 @@ def live_data():
 
 live_data()
 st.write(st.time_input(label = "a"))
+
+selected_label = st.pills(
+    "",
+    options=["上", "中央", "下"],
+    default="中央",
+    key=f"select",
+    label_visibility="collapsed"
+)
+
+# horizontal=True にすることで、縦並びから横並びにできます
+select_label = st.radio(
+    "",
+    options=["上", "中央", "下"],
+    index=1,
+    key=f"select_",
+    label_visibility="collapsed",
+    horizontal=True
+)

@@ -112,6 +112,7 @@ for x in range(1,6):
         div.stButton > button {position: absolute; top: -16px; left: -128px;
         width: 150px; height: 20px; min-height: 0px; margin-top: 0px}
         div.stButton > button * {font-size: 10px}
+        [data-testid="stSlider"] div[data-baseweb="slider"] ~ div {display: none !important;}
         </style>
         """,
         unsafe_allow_html= True)
@@ -189,3 +190,12 @@ for y in range(1,6):
         st.rerun()
 
 # st.write("lanes:", st.session_state["lanes"][1:])
+# import time
+# @st.fragment(run_every=1)  # 5秒ごとにこの中だけが自動再実行される
+# def live_data():
+#   st.write(
+#       "現在の時刻:", time.strftime("%H:%M:%S")
+#   )  # 5秒ごとに時刻が更新される
+
+# live_data()
+# st.write(st.time_input(label = "a"))
