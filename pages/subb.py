@@ -98,7 +98,7 @@ for x in range(1,6):
             """,
             unsafe_allow_html=True,
         )
-        st.session_state["select"][x] = st.select_slider("",options=["上", "中央", "下"], key=f"select{x}", label_visibility="collapsed")
+        st.session_state["select"][x] = st.select_slider("",options = ["上", "中央", "下"], value = "中央", key=f"select{x}", label_visibility = "collapsed")
 
     with col5:
         selected_pokemon_B[x] = st.selectbox(f"敵{x}",df["name"])

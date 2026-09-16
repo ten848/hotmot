@@ -106,10 +106,17 @@ if uploaded:
 #   st.image(cropped)
 
   if targets:
-    for name in targets:
-      encoded = urllib.parse.quote(name)
-      url = f"https://uniteapi.dev/jp/search?q={encoded}"
-      st.markdown(f"- [{name} ]({url})", unsafe_allow_html=True)
+    col1, col2 = st.columns(2)
+
+    for name in targets[:5]:
+        encoded = urllib.parse.quote(name)
+        url = f"https://uniteapi.dev/jp/search?q={encoded}"
+        col1.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
+
+    for name in targets[5:10]:
+        encoded = urllib.parse.quote(name)
+        url = f"https://uniteapi.dev/jp/search?q={encoded}"
+        col2.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
 
 # with open("images/UI/korokku.txt", "r") as f:
 #   korokku = f.read().strip()
