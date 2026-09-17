@@ -77,4 +77,4 @@ selected_pokemon = st.selectbox("select",df["name"])
 filtered_df = df[df["name"] == selected_pokemon]
 
 st.write("### 詳細データ")
-st.table(df[df["name"] != " "][["name", "type", "role", "パワースパイク", "とくしゅ"]])
+st.table(df[df["name"] != " "][["name","role","パワースパイク","DPS","耐久","CC強度","射程","AoE","ラスヒ","妨害耐性","回復","減速","移動技","LCC","とくしゅ"]])
