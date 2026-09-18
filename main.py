@@ -74,7 +74,23 @@ with col2:
 
 
 selected_pokemon = st.selectbox("select",df["name"])
-filtered_df = df[df["name"] == selected_pokemon]
 
-st.write("### 詳細データ")
-st.table(df[df["name"] != " "][["name","role","パワースパイク","DPS","耐久","CC強度","射程","AoE","ラスヒ","妨害耐性","回復","減速","移動技","LCC","とくしゅ"]])
+status = ["role","PS","DPS","耐久","CC強度","射程","AoE","ラスヒ","対CC","回復","減速","移動技","LCC","特殊"]
+
+filtered_df = df[df["name"] == selected_pokemon][status]
+
+st.dataframe(filtered_df,
+			use_container_width=True,
+			hide_index = True,
+	        column_config={
+			"role": st.column_config.TextColumn("role", width=70, alignment="right"),
+            "PS": st.column_config.TextColumn("PS", width=30, alignment="right"),
+			"DPS": st.column_config.TextColumn("DPS", width=40, alignment="right"),
+			"耐久": st.column_config.TextColumn("耐久", width=40, alignment="right"),
+			"射程": st.column_config.TextColumn("射程", width=40, alignment="right"),
+			"AoE": st.column_config.TextColumn("AoE", width=40, alignment="right"),
+			"回復": st.column_config.TextColumn("回復", width=40, alignment="right"),
+			"減速": st.column_config.TextColumn("減速", width=40, alignment="right"),
+			"LCC": st.column_config.TextColumn("LCC", width=40, alignment="right"),
+			"特殊": st.column_config.TextColumn("特殊", width=40, alignment="right")}
+			)
