@@ -5,10 +5,9 @@ from db import read_table
 import os
 df = read_table("pokemon")
 
-theme = st.get_option("theme.base")
-color = "black" if theme == "dark" else "white"
-
 #region unitexyz
+# theme = st.get_option("theme.base")
+# color = "black" if theme == "dark" else "white"
 # st.markdown(
 #     f"""
 #     <style>

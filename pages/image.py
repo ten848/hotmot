@@ -1,10 +1,13 @@
+import streamlit as st
 import time
 import urllib.parse
 import webbrowser
 from google import generativeai as genai
 from PIL import Image
-import streamlit as st
+from supabase import create_client
+import os
 
+#region unitexyz
 theme = st.get_option("theme.base")
 color = "black" if theme == "dark" else "white"
 
@@ -28,12 +31,13 @@ st.markdown(
     """,
     unsafe_allow_html=True
 )
+#endregion
 
+#region gemini
 if "GEMINI_API_KEY" in st.secrets:
   genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
 else:
   st.error("APIキーが設定されていません。.streamlit/secrets.toml")
-
 
 def crop_target_generated_area(img):
   w, h = img.size
@@ -46,8 +50,7 @@ def crop_target_generated_area(img):
   box = (max(0, left), max(0, top), min(w, right), min(h, bottom))
   return img.crop(box)
 
-
-def extract_generated_with_ai(cropped_img):
+def extract_generated(cropped_img):
   model = genai.GenerativeModel("gemini-3.5-flash-lite")
 
   img_to_send = cropped_img.copy()
@@ -56,11 +59,7 @@ def extract_generated_with_ai(cropped_img):
   )
 
   prompt = (
-      "画像内のハングルや記号もありうる計10人のプレイヤー名「だけ」を1行につき1つ返して"
-    #   このゲーム画面の画像からプレイヤー名を正確に読み取り、
-    #   余分な説明や記号を一切含めず、
-    #   プレイヤー名のテキスト文字列だけを1行に1人ずつの改行で返してください。
-    #   みつからなければなにも返さないで。
+      "画像内のハングルや記号も含みうる計10人のプレイヤー名「だけ」を1行につき1つ返して"
   )
 
   try:
@@ -78,17 +77,20 @@ def extract_generated_with_ai(cropped_img):
     st.error(f"Error: {e}")
     return None
 
+# def open_page(target_player_name):
+#   encoded = urllib.parse.quote(target_player_name)
+#   url = f"https://uniteapi.dev/jp/search?q={encoded}"
+#   webbrowser.open(url)
+SUPABASE_URL = os.getenv("SUPABASE_URL")
+SUPABASE_KEY = os.getenv("SUPABASE_KEY")
 
-def open_partial_match_page(target_name):
-  encoded = urllib.parse.quote(target_name)
-  url = f"https://uniteapi.dev/jp/search?q={encoded}"
+supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-  webbrowser.open(url)
+def add_record(player_name, url, team):
+    data = {"player_name": player_name, "url": url, "team":team}
+    res = supabase.table("record").insert(data).execute()
+    return res.data
 
-# st.write(
-#     "<span style='color: white; font-size: 40px'><br>&emsp;&emsp;データ、とらせてもらうよ。</span>",
-#     unsafe_allow_html=True,
-# )
 uploaded = st.file_uploader("データ、とらせてもらうよ。",type=["png", "jpg", "jpeg"])
 
 if uploaded:
@@ -97,40 +99,36 @@ if uploaded:
   cropped = crop_target_generated_area(img)
 
   with st.spinner("なるほどなるほど..."):
-    targets = extract_generated_with_ai(cropped)
+    targets = extract_generated(cropped)
 
   st.write("解析終了:"
     # , targets if targets else "こんなの…データにないぞ…"
     )
 
-#   st.image(cropped)
+  supabase.table("record").delete().not_.is_("url", "null").execute()
 
-  if targets:
-    col1, col2 = st.columns(2)
+  for i, player_name in enumerate(targets):
+      encoded = urllib.parse.quote(player_name)
+      url = f"https://uniteapi.dev/jp/search?q={encoded}"
 
-    for name in targets[:5]:
-        encoded = urllib.parse.quote(name)
-        url = f"https://uniteapi.dev/jp/search?q={encoded}"
+      team = "味方" if i < 5 else "敵"
+
+      if player_name and url and team:
+        add_record(player_name, url, team)
+
+
+def load_url():
+    res = supabase.table("record").select("*").not_.is_("url", "null").execute()
+    return res.data
+
+url_dt = load_url()
+col1, col2 = st.columns(2)
+for row in url_dt:
+    name = row.get("player_name") 
+    url = row.get("url")
+    team = row.get("team")
+    
+    if team == "味方":
         col1.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
-
-    for name in targets[5:10]:
-        encoded = urllib.parse.quote(name)
-        url = f"https://uniteapi.dev/jp/search?q={encoded}"
+    elif team == "敵":
         col2.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
-
-# with open("images/UI/korokku.txt", "r") as f:
-#   korokku = f.read().strip()
-
-# st.markdown(f"""
-#         <style>
-#         .stApp {{
-#             background-image: url("data:image/jpeg;base64,{korokku}");
-#             background-size: cover;          /* 画面全体にフィットさせる */
-#             background-position: center;     /* 中央寄せ */
-#             background-repeat: no-repeat;    /* 繰り返さない */
-#             background-attachment: fixed;    /* スクロールしても固定 */
-#         }}
-#         </style>
-#         """,
-#         unsafe_allow_html = True
-#         )
