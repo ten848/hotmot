@@ -59,7 +59,7 @@ def extract_generated(cropped_img):
   )
 
   prompt = (
-      "画像内のハングルや記号も含みうる計10人のプレイヤー名「だけ」を1行につき1つ返して"
+      "画像内のあらゆるUnicode対応文字を含みうる計10人のプレイヤー名「だけ」を1行につき1つ返して"
   )
 
   try:
@@ -81,9 +81,6 @@ def extract_generated(cropped_img):
 #   encoded = urllib.parse.quote(target_player_name)
 #   url = f"https://uniteapi.dev/jp/search?q={encoded}"
 #   webbrowser.open(url)
-
-from supabase import create_client
-
 
 SUPABASE_URL = st.secrets["SUPABASE_URL"]
 SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
