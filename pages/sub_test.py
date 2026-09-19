@@ -42,8 +42,10 @@ img_bottom = img_bottom.resize((50,50))
 for x in range(1,6):
     col1, col2, col3, col4, col5, col6= st.columns([1, 2, 1.5, 0.5, 2, 1])
     with col2:
-        pokemon[x] = st.selectbox(f"味方{x}",df["name"])
-        player_num = x
+        select = st.selectbox(f"味方{x}",df["name"])
+        if select:
+            pokemon[x] = select
+            player_num = x
 
     with col1:
         if os.path.exists(f"images/pokemon/{pokemon[x].split("(")[0]}.png"):
@@ -129,8 +131,8 @@ def add_record(pokemon, player_num):
     res = supabase.table("record").upsert(data, on_conflict="player_num").execute()
     return res.data
 
-if pokemon and player_num:
-    add_record(pokemon[player_num], player_num)
+# if pokemon and player_num:
+#     add_record(pokemon[player_num], player_num)
 
 def load_player_num():
     res = supabase.table("record").select("*").not_.is_("pokemon", "null").execute()
@@ -141,7 +143,6 @@ for row in url_dt:
     player_num = row.get("player_num")
     pokemon[player_num] = row.get("pokemon")
     st.write(pokemon)
-
 
 if st.button(""):
     supabase.table("record").delete().not_.is_("pokemon", "null").execute()
