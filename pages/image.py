@@ -91,7 +91,7 @@ def add_record(player_name, url, tag):
     res = supabase.table("record").insert(data).execute()
     return res.data
 
-uploaded = st.file_uploader("データ、とらせてもらうよ。",type=["png", "jpg", "jpeg"])
+uploaded = st.file_uploader("データ、とらせてもらうよ。",type =["png", "jpg", "jpeg"])
 
 if uploaded:
   img = Image.open(uploaded)

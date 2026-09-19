@@ -29,3 +29,8 @@ select_label = st.radio(
     label_visibility="collapsed",
     horizontal=True
 )
+theta = "no"
+pi = st.selectbox("",options=["","上", "中央", "下"],key = "A")
+if pi:
+  theta = pi
+st.write(theta)
