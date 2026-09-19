@@ -34,3 +34,20 @@ pi = st.selectbox("",options=["","上", "中央", "下"],key = "A")
 if pi:
   theta = pi
 st.write(theta)
+
+A = []
+label = st.pills(
+    "",
+    options=[1, 2, 3],
+    default="中央",
+    key=f"select",
+    label_visibility="collapsed"
+)
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
+
+st.write("KEY is None:", st.secrets.get("SUPABASE_KEY") is None)
+st.write("URL:", st.secrets["SUPABASE_URL"])
+
+
+
