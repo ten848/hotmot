@@ -81,8 +81,12 @@ def extract_generated(cropped_img):
 #   encoded = urllib.parse.quote(target_player_name)
 #   url = f"https://uniteapi.dev/jp/search?q={encoded}"
 #   webbrowser.open(url)
-SUPABASE_URL = os.getenv("SUPABASE_URL")
-SUPABASE_KEY = os.getenv("SUPABASE_KEY")
+
+from supabase import create_client
+
+
+SUPABASE_URL = st.secrets["SUPABASE_URL"]
+SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
