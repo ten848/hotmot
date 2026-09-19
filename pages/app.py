@@ -47,6 +47,5 @@ for r in url_dt:
             st.rerun()
 
 if st.button("全削除", key=f"del_all_{['id']}"):
-    # urlが NULL（None）ではないレコードを一括で削除する
     supabase.table("record").delete().not_.is_("url", "null").execute()
     st.rerun()

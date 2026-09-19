@@ -1,11 +1,10 @@
 import streamlit as st
 import time
 import urllib.parse
-import webbrowser
+# import webbrowser
 from google import generativeai as genai
 from PIL import Image
 from supabase import create_client
-import os
 
 #region unitexyz
 theme = st.get_option("theme.base")
@@ -59,7 +58,7 @@ def extract_generated(cropped_img):
   )
 
   prompt = (
-      "画像内のあらゆるUnicode対応文字を含みうる計10人のプレイヤー名「だけ」を1行につき1つ返して"
+      "画像内のUnicodeの文字コードや正確な特殊文字を使用し、計10人のプレイヤー名「だけ」を1行につき1つ返して"
   )
 
   try:
@@ -87,8 +86,8 @@ SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def add_record(player_name, url, team):
-    data = {"player_name": player_name, "url": url, "team":team}
+def add_record(player_name, url, type):
+    data = {"player_name": player_name, "url": url, "type":type}
     res = supabase.table("record").insert(data).execute()
     return res.data
 
@@ -112,10 +111,10 @@ if uploaded:
       encoded = urllib.parse.quote(player_name)
       url = f"https://uniteapi.dev/jp/search?q={encoded}"
 
-      team = "味方" if i < 5 else "敵"
+      type = 1 if i < 5 else 2
 
-      if player_name and url and team:
-        add_record(player_name, url, team)
+      if player_name and url and type:
+        add_record(player_name, url, type)
 
 
 def load_url():
@@ -125,11 +124,11 @@ def load_url():
 url_dt = load_url()
 col1, col2 = st.columns(2)
 for row in url_dt:
-    name = row.get("player_name") 
+    name = row.get("player_name")
     url = row.get("url")
-    team = row.get("team")
+    type = row.get("type")
     
-    if team == "味方":
+    if type == "1":
         col1.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
-    elif team == "敵":
+    elif type == "2":
         col2.markdown(f"- [{name}]({url})", unsafe_allow_html=True)

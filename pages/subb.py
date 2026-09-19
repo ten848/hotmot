@@ -140,4 +140,3 @@ if st.button("レーン宣告"):
         if st.session_state["select"] [i] == "下":
             st.session_state["lanes"][i] = "下"
     st.rerun()
-
