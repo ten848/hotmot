@@ -86,8 +86,8 @@ SUPABASE_KEY = st.secrets["SUPABASE_KEY"]
 
 supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
-def add_record(player_name, url, type):
-    data = {"player_name": player_name, "url": url, "type":type}
+def add_record(player_name, url, tag):
+    data = {"player_name": player_name, "url": url, "tag":tag}
     res = supabase.table("record").insert(data).execute()
     return res.data
 
@@ -111,11 +111,10 @@ if uploaded:
       encoded = urllib.parse.quote(player_name)
       url = f"https://uniteapi.dev/jp/search?q={encoded}"
 
-      type = 1 if i < 5 else 2
+      tag = 1 if i < 5 else 2
 
-      if player_name and url and type:
-        add_record(player_name, url, type)
-
+      if player_name and url and tag:
+        add_record(player_name, url, tag)
 
 def load_url():
     res = supabase.table("record").select("*").not_.is_("url", "null").execute()
@@ -126,9 +125,9 @@ col1, col2 = st.columns(2)
 for row in url_dt:
     name = row.get("player_name")
     url = row.get("url")
-    type = row.get("type")
+    tag = row.get("tag")
     
-    if type == "1":
+    if tag == "1":
         col1.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
-    elif type == "2":
+    elif tag == "2":
         col2.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
