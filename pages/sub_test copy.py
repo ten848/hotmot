@@ -99,8 +99,8 @@ for x in range(1,6):
         player_num = x
         if st.session_state["pokemon"] [player_num] and player_num:
             add_record(st.session_state["pokemon"][player_num], player_num)
-            res = supabase.table("record").upsert({"pokemon": "test", "player_num": 1},on_conflict="player_num").execute()
-            st.write(res)
+            st.write("add_record called")
+
 
     with col1:
         if os.path.exists(f"images/pokemon/{st.session_state["pokemon"][x].split("(")[0]}.png"):
