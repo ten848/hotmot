@@ -82,27 +82,46 @@ url_dt = load_player_num()
 for row in url_dt:
     player_num = row.get("player_num")
     player_num = int(player_num)
-    st.session_state["pokemon"][player_num] = row.get("pokemon")
+    remote_poke = row.get("pokemon")
+    
+    # ローカルの session_state と違う（＝他の端末で変えられた）場合のみ、
+    # selectbox のキーのステートも強制上書きする
+    if 1 <= player_num <= 5:
+        key_name = f"select_A{player_num}"
+        if st.session_state["pokemon"][player_num] != remote_poke:
+            st.session_state["pokemon"][player_num] = remote_poke
+            st.session_state[key_name] = remote_poke  # ←キーを強制同期
+            
+    elif 6 <= player_num <= 10:
+        b_index = player_num - 5
+        key_name = f"select_B{b_index}"
+        if st.session_state["pokemon"][player_num] != remote_poke:
+            st.session_state["pokemon"][player_num] = remote_poke
+            st.session_state[key_name] = remote_poke  # ←キーを強制同期
 
 #region 入力欄
 for x in range(1,6):
     col1, col2, col3, col4, col5, col6= st.columns([1, 2, 1.5, 0.5, 2, 1])
     with col2:
+        # すでに session_state["pokemon"][x] には最新が入っている
+        current_value = st.session_state["pokemon"][x]
         try:
-            default_index = list(df["name"]).index(st.session_state["pokemon"][x])
+            default_index = list(df["name"]).index(current_value)
         except (ValueError, TypeError):
             default_index = 0
-        st.session_state["pokemon"][x] = st.selectbox(f"味方{x}",df["name"],
-            key = f"select_A{x}", index=default_index
+            
+        selected_value = st.selectbox(
+            f"味方{x}",
+            df["name"],
+            key=f"select_A{x}",
+            index=default_index
         )
-        new_value = st.session_state["pokemon"][x]
 
-        player_num = x
-        if new_value != st.session_state["pokemon"][x]:
-            st.session_state["pokemon"][x] = new_value
-            add_record(new_value, player_num)
-
-
+        # ユーザーが自分で選択を変えたときだけ、session_state を更新して Supabase に保存
+        if selected_value != current_value:
+            st.session_state["pokemon"][x] = selected_value
+            add_record(selected_value, x)
+            
     with col1:
         if os.path.exists(f"images/pokemon/{st.session_state["pokemon"][x].split("(")[0]}.png"):
             img_copy = Image.open(f"images/pokemon/{st.session_state["pokemon"][x].split("(")[0]}.png").convert("RGBA").copy()
@@ -135,25 +154,25 @@ for x in range(1,6):
         )
         st.session_state["select"][x] = st.select_slider("",options = ["上", "中央", "下"], value = "中央", key=f"select{x}", label_visibility = "collapsed")
 
-    with col5:
-        try:
-            default_index = list(df["name"]).index(st.session_state["pokemon"][x+5])
-        except (ValueError, TypeError):
-            default_index = 0
-        st.session_state["pokemon"][x+5] = st.selectbox(f"味方{x}",df["name"],
-            key = f"select_B{x}", index=default_index
-        )
+    # with col5:
+    #     try:
+    #         default_index = list(df["name"]).index(st.session_state["pokemon"][x+5])
+    #     except (ValueError, TypeError):
+    #         default_index = 0
+    #     st.session_state["pokemon"][x+5] = st.selectbox(f"味方{x}",df["name"],
+    #         key = f"select_B{x}", index=default_index
+    #     )
         
-        player_num = x
-        if st.session_state["pokemon"] [player_num] and player_num:
-            add_record(st.session_state["pokemon"][player_num], player_num)
+    #     player_num = x
+    #     if st.session_state["pokemon"] [player_num] and player_num:
+    #         add_record(st.session_state["pokemon"][player_num], player_num)
 
-    with col6:
-        img_path = f"images/pokemon/{st.session_state["pokemon"][x+5].split("(")[0]}.png"
-        if os.path.exists(img_path):
-            st.image(img_path, width=100)
-        else:
-            st.image("images/UI/橙icon_unite.jpg", width=100)
+    # with col6:
+    #     img_path = f"images/pokemon/{st.session_state["pokemon"][x+5].split("(")[0]}.png"
+    #     if os.path.exists(img_path):
+    #         st.image(img_path, width=100)
+    #     else:
+    #         st.image("images/UI/橙icon_unite.jpg", width=100)
 #endregion
 
 #region Next
@@ -190,4 +209,3 @@ st.markdown("""
     unsafe_allow_html= True)
 
 st.write(st.session_state["pokemon"])
-
