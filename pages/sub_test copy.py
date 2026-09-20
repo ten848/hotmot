@@ -98,8 +98,8 @@ for x in range(1,6):
 
         player_num = x
         if st.session_state["pokemon"] [player_num] and player_num:
-            add_record(st.session_state["pokemon"][player_num], player_num)
             st.write("add_record called")
+            add_record(st.session_state["pokemon"][player_num], player_num)
 
 
     with col1:
