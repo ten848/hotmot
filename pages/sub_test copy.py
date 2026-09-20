@@ -25,7 +25,7 @@ if "pokemon" not in st.session_state:
     st.session_state["pokemon"] = [None] * 11
 
 if "select" not in st.session_state:
-    st.session_state["select"] = [1] * 6
+    st.session_state["target"] = [1] * 6
 
 if "lanes" not in st.session_state:
     st.session_state["lanes"] = [None] * 6
@@ -50,10 +50,7 @@ with container1:
         supabase.table("record").delete().not_.is_("pokemon", "null").execute()
         st.session_state["pokemon"] = [None] * 11
         for y in range(11):
-            key_name = f"select_A{y}"
-            if key_name in st.session_state:
-                del st.session_state[key_name]
-            key_name = f"select_B{y}"
+            key_name = f"select{y}"
             if key_name in st.session_state:
                 del st.session_state[key_name]
 
@@ -82,27 +79,44 @@ url_dt = load_player_num()
 for row in url_dt:
     player_num = row.get("player_num")
     player_num = int(player_num)
-    st.session_state["pokemon"][player_num] = row.get("pokemon")
+    remote_poke = row.get("pokemon")
+    
+    # ローカルの session_state と違う（＝他の端末で変えられた）場合のみ、
+    # selectbox のキーのステートも強制上書きする
+    if player_num:
+        key_name = f"select{player_num}"
+        if st.session_state["pokemon"][player_num] != remote_poke:
+            st.session_state["pokemon"][player_num] = remote_poke
+            st.session_state[key_name] = remote_poke  # ←キーを強制同期
+            
+    # elif 6 <= player_num <= 10:
+    #     b_index = player_num - 5
+    #     key_name = f"select_B{b_index}"
+    #     if st.session_state["pokemon"][player_num] != remote_poke:
+    #         st.session_state["pokemon"][player_num] = remote_poke
+    #         st.session_state[key_name] = remote_poke  # ←キーを強制同期
 
 #region 入力欄
 for x in range(1,6):
     col1, col2, col3, col4, col5, col6= st.columns([1, 2, 1.5, 0.5, 2, 1])
     with col2:
+        current_valueA = st.session_state["pokemon"][x]
         try:
-            default_index = list(df["name"]).index(st.session_state["pokemon"][x])
+            default_indexA = list(df["name"]).index(current_valueA)
         except (ValueError, TypeError):
-            default_index = 0
-        st.session_state["pokemon"][x] = st.selectbox(f"味方{x}",df["name"],
-            key = f"select_A{x}", index=default_index
+            default_indexA = 0
+            
+        select_valueA = st.selectbox(
+            f"味方{x}",
+            df["name"],
+            key=f"select{x}",
+            index=default_indexA
         )
-        new_value = st.session_state["pokemon"][x]
 
-        player_num = x
-        if new_value != st.session_state["pokemon"][x]:
-            st.session_state["pokemon"][x] = new_value
-            add_record(new_value, player_num)
-
-
+        if select_valueA != current_valueA:
+            st.session_state["pokemon"][x] = select_valueA
+            add_record(select_valueA, x)
+            
     with col1:
         if os.path.exists(f"images/pokemon/{st.session_state["pokemon"][x].split("(")[0]}.png"):
             img_copy = Image.open(f"images/pokemon/{st.session_state["pokemon"][x].split("(")[0]}.png").convert("RGBA").copy()
@@ -128,25 +142,30 @@ for x in range(1,6):
         st.markdown(
             f"""
             <style>
-            .st-key-select{x} {{transform: translate(-120px, -30px); margin-top: 0px; padding: 10px; border-radius: 8px; width: 200px}}
+            .st-key-select_lanes{x} {{transform: translate(-120px, -30px); margin-top: 0px; padding: 10px; border-radius: 8px; width: 200px}}
             </style>
             """,
             unsafe_allow_html=True,
         )
-        st.session_state["select"][x] = st.select_slider("",options = ["上", "中央", "下"], value = "中央", key=f"select{x}", label_visibility = "collapsed")
+        st.session_state["target"][x] = st.select_slider("",options = ["上", "中央", "下"], value = "中央", key=f"select_lanes{x}", label_visibility = "collapsed")
 
     with col5:
-        try:
-            default_index = list(df["name"]).index(st.session_state["pokemon"][x+5])
-        except (ValueError, TypeError):
-            default_index = 0
-        st.session_state["pokemon"][x+5] = st.selectbox(f"味方{x}",df["name"],
-            key = f"select_B{x}", index=default_index
-        )
-        
-        player_num = x
-        if st.session_state["pokemon"] [player_num] and player_num:
-            add_record(st.session_state["pokemon"][player_num], player_num)
+            current_valueB = st.session_state["pokemon"][x+5]
+            try:
+                default_indexB = list(df["name"]).index(current_valueB)
+            except (ValueError, TypeError):
+                default_indexB = 0
+                
+            select_valueB = st.selectbox(
+                f"敵{x}",
+                df["name"],
+                key=f"select{x+5}",
+                index=default_indexB
+            )
+    
+            if select_valueB != current_valueB:
+                st.session_state["pokemon"][x+5] = select_valueB
+                add_record(select_valueB, x+5)
 
     with col6:
         img_path = f"images/pokemon/{st.session_state["pokemon"][x+5].split("(")[0]}.png"
@@ -168,15 +187,16 @@ container2 = st.container(key="container2")
 with container2:
     if st.button("レーン宣告"):
         for i in range(1,6):
-            if st.session_state["select"] [i] == "上":
+            if st.session_state["target"] [i] == "上":
                 st.session_state["lanes"][i] = "上"
 
-            if st.session_state["select"] [i] == "中央":
+            if st.session_state["target"] [i] == "中央":
                 st.session_state["lanes"][i] = "中央"
                     
-            if st.session_state["select"] [i] == "下":
+            if st.session_state["target"] [i] == "下":
                 st.session_state["lanes"][i] = "下"
-            st.rerun()
+            
+        st.rerun()
 
 st.markdown("""
     <style>
@@ -189,5 +209,5 @@ st.markdown("""
     """,
     unsafe_allow_html= True)
 
-st.write(st.session_state["pokemon"])
-
+# st.write(st.session_state["target"])
+# st.write(st.session_state["lanes"])
