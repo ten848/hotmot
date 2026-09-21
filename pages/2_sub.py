@@ -225,9 +225,13 @@ status = ["role","PS","DPS","耐久","CC強度","射程","AoE","ラスヒ","対C
 
 DPS_df = [None] * 11
 耐久_df = [None] * 11
+CC強度_df = [None] * 11
+射程_df = [None] * 11
 
 DPS_sum = [0] * 2
 耐久_sum= [0] * 2
+CC強度_sum= [0] * 2
+射程_sum= [0] * 2
 
 def status_sum():
     for z in range(1,11):
@@ -236,10 +240,18 @@ def status_sum():
         poke = (df["name"] == st.session_state["pokemon"][z])
         DPS_df[z] = int(df[poke]["DPS"].iloc[0])
         耐久_df[z] = int(df[poke]["耐久"].iloc[0])
+        CC強度_df[z] = int(df[poke]["CC強度"].iloc[0])
+        射程_df[z] = int(df[poke]["射程"].iloc[0])
+
         DPS_sum [team] += DPS_df[z]
         耐久_sum [team] += 耐久_df[z]
+        CC強度_sum [team] += CC強度_df[z]
+        射程_sum [team] += 射程_df[z]
+
 
 status_sum()
 st.write("DPS=", DPS_sum[0], DPS_sum[1])
 st.write("耐久=", 耐久_sum[0], 耐久_sum[1])
+st.write("CC強度=", CC強度_sum[0], CC強度_sum[1])
+st.write("射程=", 射程_sum[0], 射程_sum[1])
 
