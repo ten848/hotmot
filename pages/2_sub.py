@@ -226,13 +226,8 @@ status = ["role","PS","DPS","耐久","CC強度","射程","AoE","ラスヒ","対C
 DPS_df = [None] * 11
 耐久_df = [None] * 11
 
-if "DPS_sum" not in st.session_state:
-    st.session_state["DPS_sum"] = [0] * 2
-DPS_sum = st.session_state["DPS_sum"]
-
-if "耐久_sum" not in st.session_state:
-    st.session_state["耐久_sum"] = [0] * 2
-耐久_sum = st.session_state["耐久_sum"]
+DPS_sum = [0] * 2
+耐久_sum= [0] * 2
 
 def status_sum():
     for z in range(1,11):
