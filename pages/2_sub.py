@@ -245,6 +245,6 @@ def status_sum():
         耐久_sum [team] += 耐久_df[z]
 
 status_sum()
-st.write(DPS_sum[0], DPS_sum[0])
-st.write(耐久_sum[0], 耐久_sum[1])
+st.write("DPS=", DPS_sum[0], DPS_sum[1])
+st.write("耐久=", 耐久_sum[0], 耐久_sum[1])
 
