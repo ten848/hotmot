@@ -96,8 +96,7 @@ for row in url_dt:
     if 1 <= player_num <= 10:
         remote_poke = row.get("pokemon")
         remote_lane = row.get("lane")
-        
-        # ポケモンの同期
+
         key_name = f"select{player_num}"
         if st.session_state["pokemon"][player_num] != remote_poke:
             st.session_state["pokemon"][player_num] = remote_poke
@@ -163,7 +162,8 @@ for x in range(1,6):
         )
         
         default_lane_val = st.session_state["lanes"][x] if st.session_state["lanes"][x] in ["上", "中央", "下"] else "中央"
-        st.session_state["target"][x] = st.select_slider("", options=["上", "中央", "下"], value=default_lane_val, key=f"select_lanes{x}", label_visibility="collapsed")
+        st.session_state["target"][x] = st.select_slider("", options=["上", "中央", "下"],
+         value=default_lane_val, key=f"select_lanes{x}", label_visibility="collapsed")
 
     with col5:
         current_valueB = st.session_state["pokemon"][x+5]
@@ -220,3 +220,31 @@ st.markdown("""
     </style>
     """,
     unsafe_allow_html= True)
+
+status = ["role","PS","DPS","耐久","CC強度","射程","AoE","ラスヒ","対CC","回復","減速","移動技","LCC","特殊"]
+
+DPS_df = [None] * 11
+耐久_df = [None] * 11
+
+if "DPS_sum" not in st.session_state:
+    st.session_state["DPS_sum"] = [0] * 2
+DPS_sum = st.session_state["DPS_sum"]
+
+if "耐久_sum" not in st.session_state:
+    st.session_state["耐久_sum"] = [0] * 2
+耐久_sum = st.session_state["耐久_sum"]
+
+def status_sum():
+    for z in range(1,11):
+        team = 0 if z <= 5 else 1
+
+        poke = (df["name"] == st.session_state["pokemon"][z])
+        DPS_df[z] = int(df[poke]["DPS"].iloc[0])
+        耐久_df[z] = int(df[poke]["耐久"].iloc[0])
+        DPS_sum [team] += DPS_df[z]
+        耐久_sum [team] += 耐久_df[z]
+
+status_sum()
+st.write(DPS_sum[0], 耐久_sum[0])
+st.write(DPS_sum[1], 耐久_sum[1])
+
