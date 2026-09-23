@@ -68,9 +68,9 @@ with col2:
 # """
 
 # st.markdown(video_html, unsafe_allow_html=True)
-col1, col2, col3 = st.columns([1,2,1])
+col1, col2, col3 = st.columns([1,4,1])
 with col2:
-	st.image("images/UI/Oudou_RPG.png", width = 400)
+	st.image("images/UI/maken.png", width = 400)
 
 
 selected_pokemon = st.selectbox("select",df["name"])
