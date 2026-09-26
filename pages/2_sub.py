@@ -20,7 +20,7 @@ with st.sidebar:
     st.session_state["mode"] = "teru" if checked else "ten"
 #endregion
 
-#region lanes & pokemon state initialization
+#region lanes
 if "pokemon" not in st.session_state:
     st.session_state["pokemon"] = [None] * 11
 
@@ -47,7 +47,6 @@ supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 container1 = st.container(key="container1")
 with container1:
     if st.button("リセット"):
-        # ポケモンとレーン情報をリセット（ポケモン=null, レーン=中央、スライダーのtarget初期値=1など）
         supabase.table("record").update({"pokemon": None, "lane": "中央"}).not_.is_("player_num", "null").execute()
         st.session_state["pokemon"] = [None] * 11
         st.session_state["lanes"] = [None] * 11
@@ -86,7 +85,6 @@ def load_records():
     res = supabase.table("record").select("*").execute()
     return res.data
 
-# リモート（Supabase）のデータをロードして同期
 url_dt = load_records()
 for row in url_dt:
     player_num = row.get("player_num")
@@ -223,6 +221,7 @@ st.markdown("""
 
 status = ["role","PS","DPS","耐久","CC強度","射程","AoE","ラスヒ","対CC","回復","減速","移動技","LCC","特殊"]
 
+data = [None] * 11
 DPS_df = [None] * 11
 耐久_df = [None] * 11
 CC強度_df = [None] * 11
@@ -233,21 +232,40 @@ DPS_sum = [0] * 2
 CC強度_sum= [0] * 2
 射程_sum= [0] * 2
 
+import ast
+df["カウンター"] = df["カウンター"].apply(ast.literal_eval)
+
+# 自分が何番目か
+me = 0
+for z in range(1,6):
+    if not st.session_state["pokemon"][z]:
+        me = z
+        break
+
+done = [0, 0]
+for z in range(1,11):
+    team = 0 if z <= 5 else 1
+    if st.session_state["pokemon"][z]:
+        done[team] += 1
+
 def status_sum():
     for z in range(1,11):
         team = 0 if z <= 5 else 1
 
-        poke = (df["name"] == st.session_state["pokemon"][z])
-        DPS_df[z] = int(df[poke]["DPS"].iloc[0])
-        耐久_df[z] = int(df[poke]["耐久"].iloc[0])
-        CC強度_df[z] = int(df[poke]["CC強度"].iloc[0])
-        射程_df[z] = int(df[poke]["射程"].iloc[0])
+        data[z] = (df["name"] == st.session_state["pokemon"][z])
+        row = df.loc[data[z]].iloc[0]
+
+        DPS_df[z] = int(row["DPS"])
+        耐久_df[z] = int(row["耐久"])
+        CC強度_df[z] = int(row["CC強度"])
+        射程_df[z] = int(row["射程"])
 
         DPS_sum [team] += DPS_df[z]
         耐久_sum [team] += 耐久_df[z]
+        if "support" in row["role"] and row["回復"] == 1:
+            耐久_sum [team] += 0.4 * done[team]
         CC強度_sum [team] += CC強度_df[z]
         射程_sum [team] += 射程_df[z]
-
 
 status_sum()
 st.write("DPS=", DPS_sum[0], DPS_sum[1])
@@ -255,3 +273,58 @@ st.write("耐久=", 耐久_sum[0], 耐久_sum[1])
 st.write("CC強度=", CC強度_sum[0], CC強度_sum[1])
 st.write("射程=", 射程_sum[0], 射程_sum[1])
 
+from collections import defaultdict
+
+def all_counter_dict():
+    all_dict = defaultdict(int)
+
+    for idx, row in df.iterrows():
+        for i in row["カウンター"]:
+            if i:
+                all_dict[i] += 1
+
+    return dict(all_dict)
+
+all_dict = all_counter_dict()
+with st.expander(""):
+    st.write(all_dict)
+
+from collections import defaultdict
+
+
+counters = {0: defaultdict(int), 1: defaultdict(int)}
+
+for z in range(1, 11):
+    if not st.session_state["pokemon"][z]:
+        continue
+
+    team = 0 if z <= 5 else 1
+
+    data[z] = (df["name"] == st.session_state["pokemon"][z])
+    row = df.loc[data[z]].iloc[0]
+
+    for i in row["カウンター"]:
+        if i:
+            counters[team][i] += 1
+
+st.write(counters[0],counters[1])
+
+def average_status():
+    numeric_df = df.select_dtypes(include=["int64", "float64"])
+    return numeric_df.mean()
+
+average = average_status()
+with st.expander("average"):
+    st.write(average)
+
+
+st.write("me=", me)
+st.write("Done=", done)
+
+turn = 0
+
+all = df[df["name"] != ""]
+target_pokemon = []
+def scores():
+    for x in all:
+        target_pokemon.append(x)
