@@ -311,9 +311,6 @@ for z in range(1, 11):
         if i:
             counters[team][i] += 1
 
-
-st.write("味方のカウンター＝", counters[0], "敵のカウンター＝", counters[1])
-
 def average_status():
     numeric_df = df.select_dtypes(include=["int64", "float64"])
     return numeric_df.mean()
@@ -334,11 +331,10 @@ def scores():
         score = calculation(row)
     return all
 
-pokemon_names = df["名前"].tolist()
 
+pokemon_names = df["名前"].tolist()
 scores_dict = dict.fromkeys(pokemon_names)
 scores_dict = {name: 0 for name in df["名前"]}
-
 
 translate = dict(zip(df["name"], df["名前"]))
 
@@ -346,47 +342,38 @@ for z in range(1, 11):
     eng = st.session_state["pokemon"][z]
     st.session_state["poke_jp"][z] = translate.get(eng)
 
+
 def calculation():
-    for name, value in counters[1].items():   # name = 純粋なポケモン名
-        for f_nameart in scores_dict.keys():       # f_nameart = 名前+技
-            nameart = f_nameart.split('（')[0]
+    for nameart, degree in scores_dict.items():
+        target_datas = df[df["名前"] == nameart].to_dict(orient="records")[0]
 
-            if nameart == name:
-                scores_dict[f_nameart] += value
+        target_counter = target_datas["カウンター"]
+        target_counter = [c for c in target_counter if c]
+        target_role = target_datas["role"]
 
-    # enemy_names = []
-    # for z in range(6, 11):
-    #     poke_jp = st.session_state["poke_jp"][z].split('（')[0]
-    #     if poke_jp:
-    #         enemy_names.append(poke_jp)
-
-    # for f_nameart, value in scores_dict.items():
-    #     matched_rows = df[df["名前"] == f_nameart]
-    #     base_name = f_nameart.split('（')[0]
-    #     matched_rows = df[df["名前"] == base_name]
-            
-    #     if matched_rows.empty:
-    #         continue
-
-    #     counters_list = matched_rows["カウンター"].values[0]
-
-    #     for enemy in enemy_names:
-    #         if enemy and enemy in counters_list:
-    #             scores_dict[f_nameart] -= 1
-
-
-
-    for f_nameart, value in scores_dict.items():
-        name_rows = df[df["名前"] == f_nameart]
-            
-        if name_rows.empty:
-            continue
-
-        counters_list = name_rows["カウンター"].values[0]
-        counters_list = [c for c in counters_list if c]
         for z in range(6,11):
-            if counters_list and st.session_state["poke_jp"][z].startswith(tuple(counters_list)):
-                scores_dict[f_nameart] -= 1
+            enemy_data = df[df["名前"] == st.session_state["poke_jp"][z]]
+            enemy_role = enemy_data["role"].values[0]
+
+            if target_counter and st.session_state["poke_jp"][z].startswith(tuple(target_counter)):
+                scores_dict[nameart] -= 1.0
+
+            if enemy_role in target_counter:  
+                scores_dict[nameart] -= 0.5
+
+
+        for enemy_counter, degree in counters[1].items():   # counters[1]から敵のカウンターと値を取り出す
+            name = nameart.split('（')[0]   # scores_dictからキーを取り出し、技選択を消す    
+
+            if name == enemy_counter:
+                scores_dict[nameart] += degree
+
+            if target_role == enemy_counter:
+                scores_dict[nameart] += degree * 0.5
+
+
+
+        
 
 calculation()
 
