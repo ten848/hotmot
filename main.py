@@ -14,8 +14,8 @@ def main():
         page="pages/subsub.py",title="subsub"
     )
 
-# conn = sqlite3.connect("pokemon_datas.db")
-# df = read_table("pokemon")
+conn = sqlite3.connect("pokemon_datas.db")
+df = read_table("pokemon")
 
 theme = st.get_option("theme.base")
 color = "black" if theme == "dark" else "white"
