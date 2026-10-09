@@ -135,10 +135,10 @@ for x in range(1,6):
             
     with col1:
         poke_name = st.session_state["pokemon"][x]
-        # if poke_name and os.path.exists(f"images/pokemon/{poke_name.split('(')[0]}.png"):
-        #     img_copy = Image.open(f"images/pokemon/{poke_name.split('(')[0]}.png").convert("RGBA").copy()
-        # else:
-        img_copy = Image.open("images/UI/紫icon_unite.jpg").convert("RGBA").copy()
+        if poke_name and os.path.exists(f"images/pokemon/{poke_name.split('(')[0]}.png"):
+            img_copy = Image.open(f"images/pokemon/{poke_name.split('(')[0]}.png").convert("RGBA").copy()
+        else:
+            img_copy = Image.open("images/UI/紫icon_unite.jpg").convert("RGBA").copy()
 
         img_copy = img_copy.resize((100,100))
 
@@ -187,10 +187,10 @@ for x in range(1,6):
     with col6:
         poke_name_b = st.session_state["pokemon"][x+5]
         img_path = f"images/pokemon/{poke_name_b.split('(')[0]}.png" if poke_name_b else ""
-        # if poke_name_b and os.path.exists(img_path):
-        #     st.image(img_path, width=100)
-        # else:
-        st.image("images/UI/橙icon_unite.jpg", width=100)
+        if poke_name_b and os.path.exists(img_path):
+            st.image(img_path, width=100)
+        else:
+            st.image("images/UI/橙icon_unite.jpg", width=100)
 #endregion
 
 #region Next
@@ -229,11 +229,19 @@ DPS_df = [None] * 11
 耐久_df = [None] * 11
 CC強度_df = [None] * 11
 射程_df = [None] * 11
+AoE_df = [None] * 11
+対CC_df = [None] * 11
+減速_df = [None] * 11
+移動技_df = [None] * 11
 
 DPS_sum = [0] * 2
 耐久_sum= [0] * 2
 CC強度_sum= [0] * 2
 射程_sum= [0] * 2
+AoE_sum= [0] * 2
+対CC_sum= [0] * 2
+減速_sum= [0] * 2
+移動技_sum= [0] * 2
 
 if "poke_jp" not in st.session_state:
     st.session_state["poke_jp"] = [None] * 11
@@ -265,6 +273,10 @@ def status_sum():
         耐久_df[z] = int(row["耐久"])
         CC強度_df[z] = int(row["CC強度"])
         射程_df[z] = int(row["射程"])
+        AoE_df[z] = int(row["AoE"])
+        対CC_df[z] = int(row["対CC"])
+        減速_df[z] = int(row["減速"])
+        移動技_df[z] = int(row["移動技"])
 
         DPS_sum [team] += DPS_df[z]
         耐久_sum [team] += 耐久_df[z]
@@ -272,12 +284,18 @@ def status_sum():
             耐久_sum [team] += 0.4 * done[team]
         CC強度_sum [team] += CC強度_df[z]
         射程_sum [team] += 射程_df[z]
+        AoE_sum [team] += AoE_df[z]
+        対CC_sum [team] += 対CC_df[z]
+        減速_sum [team] += 減速_df[z]
+        移動技_sum [team] += 移動技_df[z]
 
 status_sum()
+
 st.write("DPS=", DPS_sum[0], DPS_sum[1])
 st.write("耐久=", 耐久_sum[0], 耐久_sum[1])
 st.write("CC強度=", CC強度_sum[0], CC強度_sum[1])
 st.write("射程=", 射程_sum[0], 射程_sum[1])
+st.write("減速=", 減速_sum[0], 減速_sum[1])
 
 from collections import defaultdict
 
@@ -344,45 +362,122 @@ for z in range(1, 11):
 
 
 def calculation():
-    for nameart, degree in scores_dict.items():
-        target_datas = df[df["名前"] == nameart].to_dict(orient="records")[0]
+    no_bring = [None] * 2
 
-        target_counter = target_datas["カウンター"]
-        target_counter = [c for c in target_counter if c]
-        target_role = target_datas["role"]
+    no_bring[0] = done[0] - 移動技_sum[0]
+    no_bring[1] = done[1] - 移動技_sum[1]
 
-        for z in range(6,11):
-            enemy_data = df[df["名前"] == st.session_state["poke_jp"][z]]
-            enemy_role = enemy_data["role"].values[0]
+    for z in range(6,11):
+        poke_jp = st.session_state["poke_jp"][z]
+        enemy_data = df[df["名前"] == st.session_state["poke_jp"][z]]
+        enemy_role = enemy_data["role"].values[0]
+        enemy_射程 = enemy_data["射程"].values[0]
+        enemy_対CC = enemy_data["対CC"].values[0]
 
-            if target_counter and st.session_state["poke_jp"][z].startswith(tuple(target_counter)):
-                scores_dict[nameart] -= 1.0
+        # 特定のスコアに直接干渉
+        if poke_jp == "リザX" or poke_jp == "リザY" or poke_jp == "ゲンガー（たたりめ）" or poke_jp == "メガギャラドス" or poke_jp == "メガルカリオ" or poke_jp == "ゾロアーク（だましうち）" or poke_jp == "ゾロアーク（つじぎり）" or poke_jp == "ウーラオス（連撃）":
+            for bind in ("リザX","リザY","ヤドラン","アマージョ","ミミッキュ（かげぽこ）","ミミッキュ（ルーム）","ミミッキュ（かげつめ）"):
+                scores_dict[bind] += 1.0
+
+        if enemy_対CC == 2 or poke_jp == "ガラルギャロップ":
+            for through in ("カイリキー", "アマージョ", "マッシブーン"):
+                scores_dict[through] += 1.0
+
+        # スコアを全探索
+        for nameart, degree in scores_dict.items():
+            target_datas = df[df["名前"] == nameart].to_dict(orient="records")[0]
+
+            target_counter = target_datas["カウンター"]
+            target_counter = [c for c in target_counter if c]
+            target_role = target_datas["role"]
+
+            target_耐久 = target_datas["耐久"]        
+            target_CC強度 = target_datas["CC強度"]        
+            target_射程 = target_datas["射程"]        
+            target_AoE = target_datas["AoE"]
+            target_対CC = target_datas["対CC"]
+            target_減速 = target_datas["減速"]
+            target_移動技 = target_datas["移動技"]
+
+            # 減点...敵にカウンターされうるとき
+            # ターゲット(味方)について
+            if target_counter and poke_jp.startswith(tuple(target_counter)):
+                scores_dict[nameart] -= 1
 
             if enemy_role in target_counter:  
                 scores_dict[nameart] -= 0.5
 
+            if "射程4" in target_counter:
+                if enemy_射程 == 4:
+                    scores_dict[nameart] -= 1
 
-        for enemy_counter, degree in counters[1].items():   # counters[1]から敵のカウンターと値を取り出す
-            name = nameart.split('（')[0]   # scores_dictからキーを取り出し、技選択を消す    
+            if nameart == "ウーラオス（いちげき）" and enemy_対CC == 1: # なおしNG
+                scores_dict[nameart] -= 1
 
-            if name == enemy_counter:
-                scores_dict[nameart] += degree
+            if (poke_jp == "カイリキー" or poke_jp == "アマージョ" or poke_jp == "マッシブーン") and target_対CC == 2: # なおし推奨
+                scores_dict[nameart] -= 1
 
-            if target_role == enemy_counter:
-                scores_dict[nameart] += degree * 0.5
+            # ステータス和について
+            if "高耐久" in target_counter and 耐久_sum[1] >= 2.4 * done[1]:
+                scores_dict[nameart] -= 0.2
 
+            if "高CC" in target_counter and CC強度_sum[1] >= 2.4 * done[1]:
+                scores_dict[nameart] -= 0.2
 
+            if "高AoE" in target_counter and AoE_sum[1] >= 2.4 * done[1]:
+                scores_dict[nameart] -= 0.2
 
-        
+            if "高対CC" in target_counter and 対CC_sum[1] >= 2.4 * done[1]:
+                scores_dict[nameart] -= 0.2
+
+            if nameart == "ドードリオ" and 減速_sum[1] >= 3: # 減速NG
+                scores_dict[nameart] -= 0.4
+
+            # 加点...敵にカウンターできるとき
+            # ターゲット(敵)について
+            for enemy_counter, degree in counters[1].items():   # counters[1]から敵のカウンターと値を取り出す
+                name = nameart.split('（')[0]   # scores_dictからキーを取り出し、技選択を消す
+                if name == enemy_counter:
+                    scores_dict[nameart] += degree * 0.2
+
+                if target_role == enemy_counter:
+                    scores_dict[nameart] += degree * 0.1
+
+                if no_bring[0] >= 2 and target_移動技 == 1: # イワパレス対策
+                    scores_dict[nameart] += 0.1
+
+                if enemy_counter == "高耐久" and target_耐久 == 4:
+                    scores_dict[nameart] += 0.1
+
+                if enemy_counter == "高CC" and target_CC強度 == 3:
+                    scores_dict[nameart] += 0.2
+                
+                if enemy_counter == "射程4" and target_射程 == 4:
+                    scores_dict[nameart] += 0.2
+
+                if enemy_counter == "高AoE" and target_AoE == 4:
+                    scores_dict[nameart] += 0.2
+
+                if enemy_counter == "高対CC" and target_対CC >= 2:
+                    scores_dict[nameart] += 0.2
+
+            if poke_jp == "ドードリオ" and target_減速 == 1: # 減速推奨
+                scores_dict[nameart] += 0.2
+
+            if poke_jp == "ウーラオス（いちげき）" and target_対CC == 1: # なおし推奨
+                scores_dict[nameart] += 0.2
+
+            # ステータス和について
+            if nameart == "イワパレス" and no_bring[1] >= 3:
+                scores_dict[nameart] += 0.4
 
 calculation()
 
+scores_dict = {k: round(v, 1) for k, v in scores_dict.items()}
 non_zero_scores = {k: v for k, v in scores_dict.items() if v != 0}
-
 
 scores_dict_desc = dict(sorted({k: v for k, v in scores_dict.items() if v != 0}.items(),
     key=lambda x: x[1], reverse=True))
-# st.write("score=", scores_dict)
 st.write(scores_dict_desc)
 
 

@@ -275,6 +275,7 @@ st.write("射程=", 射程_sum[0], 射程_sum[1])
 
 from collections import defaultdict
 
+
 def all_counter_dict():
     all_dict = defaultdict(int)
 
@@ -291,9 +292,9 @@ with st.expander(""):
 
 from collections import defaultdict
 
-
 counters = {0: defaultdict(int), 1: defaultdict(int)}
 
+#カウンター抽出
 for z in range(1, 11):
     if not st.session_state["pokemon"][z]:
         continue
@@ -317,14 +318,19 @@ average = average_status()
 with st.expander("average"):
     st.write(average)
 
-
 st.write("me=", me)
 st.write("Done=", done)
 
 turn = 0
 
-all = df[df["name"] != ""]
-target_pokemon = []
+all = df[df["name"] != ""].copy()
+
 def scores():
-    for x in all:
-        target_pokemon.append(x)
+    for idx, row in all.iterrows():
+        score = calculation(row)   
+        all.at[idx, "score"] = score
+    return all
+
+def calculation():
+    if in counters[0]:
+
