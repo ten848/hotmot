@@ -225,24 +225,32 @@ st.markdown("""
 status = ["role","PS","DPS","耐久","CC強度","射程","AoE","ラスヒ","対CC","回復","減速","移動技","LCC","特殊"]
 
 data = [None] * 11
+PS_df = [None] * 11
 DPS_df = [None] * 11
 耐久_df = [None] * 11
 CC強度_df = [None] * 11
 射程_df = [None] * 11
 AoE_df = [None] * 11
+ラスヒ_df = [None] * 11
 対CC_df = [None] * 11
+回復_df = [None] * 11
 減速_df = [None] * 11
 移動技_df = [None] * 11
+LCC_df = [None] * 11
 特殊_df = [None] * 11
 
+PS_sum = [0] * 2
 DPS_sum = [0] * 2
 耐久_sum= [0] * 2
 CC強度_sum= [0] * 2
 射程_sum= [0] * 2
 AoE_sum= [0] * 2
+ラスヒ_sum= [0] * 2
 対CC_sum= [0] * 2
+回復_sum= [0] * 2
 減速_sum= [0] * 2
 移動技_sum= [0] * 2
+LCC_sum= [0] * 2
 特殊_sum= [0] * 2
 
 if "poke_jp" not in st.session_state:
@@ -271,16 +279,21 @@ def status_sum():
         data[z] = (df["name"] == st.session_state["pokemon"][z])
         row = df.loc[data[z]].iloc[0]
 
+        PS_df[z] = int(row["PS"])
         DPS_df[z] = int(row["DPS"])
         耐久_df[z] = int(row["耐久"])
         CC強度_df[z] = int(row["CC強度"])
         射程_df[z] = int(row["射程"])
         AoE_df[z] = int(row["AoE"])
+        ラスヒ_df[z] = int(row["ラスヒ"])
         対CC_df[z] = int(row["対CC"])
+        回復_df[z] = int(row["回復"])
         減速_df[z] = int(row["減速"])
         移動技_df[z] = int(row["移動技"])
+        LCC_df[z] = int(row["LCC"])
         特殊_df[z] = int(row["特殊"])
 
+        PS_sum [team] += PS_df[z]
         DPS_sum [team] += DPS_df[z]
         耐久_sum [team] += 耐久_df[z]
         if "support" in row["role"] and row["回復"] == 1:
@@ -288,18 +301,29 @@ def status_sum():
         CC強度_sum [team] += CC強度_df[z]
         射程_sum [team] += 射程_df[z]
         AoE_sum [team] += AoE_df[z]
+        ラスヒ_sum [team] += ラスヒ_df[z]
         対CC_sum [team] += 対CC_df[z]
+        回復_sum [team] += 回復_df[z]
         減速_sum [team] += 減速_df[z]
         移動技_sum [team] += 移動技_df[z]
+        LCC_sum [team] += LCC_df[z]
         特殊_sum [team] += 特殊_df[z]
 
 status_sum()
 
+st.write("PS=", PS_sum[0], PS_sum[1])
 st.write("DPS=", DPS_sum[0], DPS_sum[1])
 st.write("耐久=", 耐久_sum[0], 耐久_sum[1])
 st.write("CC強度=", CC強度_sum[0], CC強度_sum[1])
 st.write("射程=", 射程_sum[0], 射程_sum[1])
+st.write("AoE=", AoE_sum[0], AoE_sum[1])
+st.write("ラスヒ=", ラスヒ_sum[0], ラスヒ_sum[1])
+st.write("対CC=", 対CC_sum[0], 対CC_sum[1])
+st.write("回復=", 回復_sum[0], 回復_sum[1])
 st.write("減速=", 減速_sum[0], 減速_sum[1])
+st.write("移動技=", 移動技_sum[0], 移動技_sum[1])
+st.write("LCC=", LCC_sum[0], LCC_sum[1])
+st.write("特殊=", 特殊_sum[0], 特殊_sum[1])
 
 from collections import defaultdict
 
@@ -315,7 +339,7 @@ def all_counter_dict():
     return dict(all_dict)
 
 all_dict = all_counter_dict()
-with st.expander(""):
+with st.expander("カウンターされやすさ"):
     st.write(all_dict)
 
 counters = {0: defaultdict(int), 1: defaultdict(int)}
@@ -364,8 +388,11 @@ for z in range(1, 11):
     eng = st.session_state["pokemon"][z]
     st.session_state["poke_jp"][z] = translate.get(eng)
 
-
+st.write(counters)
 def calculation():
+    for key in scores_dict:
+        scores_dict[key] = 0.0
+        
     no_bring = [None] * 2
 
     no_bring[0] = done[0] - 移動技_sum[0]
@@ -457,9 +484,6 @@ def calculation():
                 if target_role == enemy_counter:
                     scores_dict[nameart] += degree * 0.1
 
-                if no_bring[0] >= 2 and target_移動技 == 1: # イワパレス対策
-                    scores_dict[nameart] += 0.1
-
                 if enemy_counter == "高耐久" and target_耐久 == 4:
                     scores_dict[nameart] += 0.1
 
@@ -475,6 +499,9 @@ def calculation():
                 if enemy_counter == "高対CC" and target_対CC >= 2:
                     scores_dict[nameart] += 0.2
             # endregion
+
+            if no_bring[0] >= 2 and target_移動技 == 1: # イワパレス対策
+                scores_dict[nameart] += 0.1
 
             if poke_jp == "ドードリオ" and target_減速 == 1: # 減速推奨
                 scores_dict[nameart] += 1.0
