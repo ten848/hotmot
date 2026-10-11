@@ -313,6 +313,11 @@ def status_sum():
 
 status_sum()
 
+if st.checkbox("サポタンなし"):
+    no_trust = 1
+else:
+    no_trust = 0
+
 col1, col2, col3 = st.columns(3)
 with col1:
     st.write("PS=", PS_sum[0], PS_sum[1])
@@ -469,7 +474,7 @@ def calculation():
             if nameart == "ウーラオス（いちげき）" and enemy_対CC == 1: # なおしNG
                 scores_dict[nameart] -= 0.4
 
-            if (poke_jp == "カイリキー" or poke_jp == "アマージョ" or poke_jp == "マッシブーン") and target_対CC == 2: # なおし推奨
+            if (poke_jp == "カイリキー" or poke_jp == "アマージョ" or poke_jp == "マッシブーン") and target_対CC == 2: # 妨害耐性
                 scores_dict[nameart] -= 0.4
 
             if nameart == "ハッサム" and enemy_特殊 == 1 and enemy_DPS >= 2: # 特殊かつ高火力
@@ -569,7 +574,7 @@ def calculation():
             ally_role = ally_data["role"].values[0]
             ally_DPS = ally_data["DPS"].values[0]
             ally_射程 = ally_data["射程"].values[0]
-            allyy_対CC = ally_data["対CC"].values[0]
+            ally_対CC = ally_data["対CC"].values[0]
             ally_回復 = ally_data["回復"].values[0]
             ally_特殊 = ally_data["特殊"].values[0]
 
@@ -586,9 +591,13 @@ def calculation():
             if target_role == "tank" and tank > 0:
                 scores_dict[nameart] -= 0.4
 
+            if no_trust == 1 and (target_role == "support" or target_role == "tank"):
+                scores_dict[nameart] = 0
+
     scores_dict[""] = 0
     scores_dict["バニリッチ"] = 0
     scores_dict["フェン"] = 0
+
 
 calculation()
 
