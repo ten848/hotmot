@@ -288,6 +288,8 @@ def status_sum():
         ラスヒ_df[z] = int(row["ラスヒ"])
         対CC_df[z] = int(row["対CC"])
         回復_df[z] = int(row["回復"])
+        if "support" in row["role"] and row["回復"] == 1:
+            耐久_df[z] += 2.0
         減速_df[z] = int(row["減速"])
         移動技_df[z] = int(row["移動技"])
         LCC_df[z] = int(row["LCC"])
@@ -296,8 +298,8 @@ def status_sum():
         PS_sum [team] += PS_df[z]
         DPS_sum [team] += DPS_df[z]
         耐久_sum [team] += 耐久_df[z]
-        if "support" in row["role"] and row["回復"] == 1:
-            耐久_sum [team] += 0.4 * done[team]
+        # if "support" in row["role"] and row["回復"] == 1:
+        #     耐久_sum [team] += 0.4 * done[team]
         CC強度_sum [team] += CC強度_df[z]
         射程_sum [team] += 射程_df[z]
         AoE_sum [team] += AoE_df[z]
@@ -439,6 +441,8 @@ def calculation():
             target_PS = target_datas["PS"]
             target_DPS = target_datas["DPS"]
             target_耐久 = target_datas["耐久"]
+            if target_role == "support" and target_回復 == 1:
+                target_耐久 += 2.0
             target_CC強度 = target_datas["CC強度"]
             target_射程 = target_datas["射程"]
             target_AoE = target_datas["AoE"]
@@ -452,6 +456,8 @@ def calculation():
             # ターゲット(味方)について
             if target_counter and poke_jp.startswith(tuple(target_counter)):
                 scores_dict[nameart] -= 4.0
+                if nameart == "タイレーツ":
+                    scores_dict[nameart] -= 100.0
 
             if enemy_role in target_counter:  
                 scores_dict[nameart] -= 2.0
@@ -492,6 +498,8 @@ def calculation():
                 name = nameart.split('（')[0]   # scores_dictからキーを取り出し、技選択を消す
                 if name == enemy_counter:
                     scores_dict[nameart] += degree * 4.0 / roops
+                    if name == "タイレーツ":
+                        scores_dict[nameart] += degree * 5.0 / roops
 
                 if target_role == enemy_counter:
                     scores_dict[nameart] += degree * 4.0 / roops
@@ -571,7 +579,12 @@ def calculation():
             if target_射程 == 4 and porker > 0:
                 scores_dict[nameart] -= 4.0
 
-
+            tank = 0
+            if ally_role == "tank":
+                tank += 1
+            
+            if target_role == "tank" and tank > 0:
+                scores_dict[nameart] -= 4.0
 
     scores_dict[""] = 0
     scores_dict["バニリッチ"] = 0
