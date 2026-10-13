@@ -162,7 +162,7 @@ for x in range(1,6):
             unsafe_allow_html=True,
         )
         
-        default_lane_val = st.session_state["lanes"][x] if st.session_state["lanes"][x] in ["上", "中央", "下"] else "中央"
+        default_lane_val = st.session_state["lanes"][x] if st.session_state["lanes"][x] in ["上", "中央", "下"] else "下"
         st.session_state["target"][x] = st.select_slider("", options=["上", "中央", "下"],
          value=default_lane_val, key=f"select_lanes{x}", label_visibility="collapsed")
 
@@ -340,7 +340,6 @@ with col3:
 
 from collections import defaultdict
 
-
 def all_counter_dict():
     all_dict = defaultdict(int)
 
@@ -389,6 +388,7 @@ def scores():
 pokemon_names = df["名前"].tolist()
 scores_dict = dict.fromkeys(pokemon_names)
 scores_dict = {name: 0 for name in df["名前"]}
+count = len(scores_dict)
 
 translate = dict(zip(df["name"], df["名前"]))
 
@@ -407,27 +407,47 @@ def calculation():
     no_bring[0] = done[0] - 移動技_sum[0]
     no_bring[1] = done[1] - 移動技_sum[1]
 
-    PS_border = 10
+    PS_border = 11
     DPS_border = 10
-    耐久_border = 13
+    耐久_border = 11
     CC強度_border = 11
     射程_border = 10
     AoE_border = 10
 
     roops = 5
+    porker = 0
+    ally_tank = 0
+    ally_support = 0
+    ally_sapotan = 0
+    
+    assassin_power = 0
 
-    for z in range(6,11):
-        poke_jp = st.session_state["poke_jp"][z]
-        enemy_data = df[df["名前"] == st.session_state["poke_jp"][z]]
+    for z in range(1,6):
+        # region 定義
+        ally_data = df[df["名前"] == st.session_state["poke_jp"][z]]
+        ally_名前 = ally_data["名前"].values[0]
+        ally_role = ally_data["role"].values[0]
+        ally_DPS = ally_data["DPS"].values[0]
+        ally_射程 = ally_data["射程"].values[0]
+        ally_対CC = ally_data["対CC"].values[0]
+        ally_回復 = ally_data["回復"].values[0]
+        ally_特殊 = ally_data["特殊"].values[0]
+        
+        poke_jp = st.session_state["poke_jp"][z + 5]
+        enemy_data = df[df["名前"] == poke_jp]
+        enemy_名前 = enemy_data["名前"].values[0]
         enemy_role = enemy_data["role"].values[0]
         enemy_DPS = enemy_data["DPS"].values[0]
         enemy_射程 = enemy_data["射程"].values[0]
         enemy_対CC = enemy_data["対CC"].values[0]
         enemy_回復 = enemy_data["回復"].values[0]
         enemy_特殊 = enemy_data["特殊"].values[0]
+        # endregion
 
         # 特定のスコアに直接干渉
-        if poke_jp == "リザX" or poke_jp == "リザY" or poke_jp == "ゲンガー（たたりめ）" or poke_jp == "メガギャラドス" or poke_jp == "メガルカリオ" or poke_jp == "ゾロアーク（だましうち）" or poke_jp == "ゾロアーク（つじぎり）" or poke_jp == "ウーラオス（連撃）":
+        if (poke_jp == "リザX" or poke_jp == "リザY" or poke_jp == "ゲンガー（たたりめ）"
+            or poke_jp == "メガギャラドス" or poke_jp == "メガルカリオ" or poke_jp == "ゾロアーク（だましうち）"
+            or poke_jp == "ゾロアーク（つじぎり）" or poke_jp == "ウーラオス（連撃）"):
             for bind in ("リザX","リザY","ヤドラン","アマージョ","ミミッキュ（かげぽこ）","ミミッキュ（ルーム）","ミミッキュ（かげつめ）"):
                 scores_dict[bind] += 0.4
 
@@ -457,8 +477,7 @@ def calculation():
             target_移動技 = target_datas["移動技"]
             target_特殊 = target_datas["特殊"]
 
-            # 減点...敵にカウンターされうるとき
-            # ターゲット(味方)について
+            # region 減点 味方のカウンター欄を抽出
             if target_counter and poke_jp.startswith(tuple(target_counter)):
                 scores_dict[nameart] -= 0.4
                 if nameart == "タイレーツ":
@@ -495,10 +514,9 @@ def calculation():
 
             if nameart == "ドードリオ" and 減速_sum[1] >= 3: # 減速NG
                 scores_dict[nameart] -= 0.8 / roops
+            #endregion
 
-            # 加点...敵にカウンターできるとき
-            # ターゲット(敵)について
-            #region カウンター
+            # region 加点 敵のカウンター欄を抽出
             for enemy_counter, degree in counters[1].items():   # counters[1]から敵のカウンターと値を取り出す
                 name = nameart.split('（')[0]   # scores_dictからキーを取り出し、技選択を消す
                 if name == enemy_counter:
@@ -525,6 +543,33 @@ def calculation():
                     scores_dict[nameart] += 0.4 / roops
             # endregion
 
+            # region 基礎得点
+            for i in range(0, 17):
+                if i - 1 < abs((PS_sum[0] + target_PS) - (PS_border / 5) * (done[0] + 1)) < i + 1:
+                    scores_dict[nameart] += (1.2 - i * 0.2) / roops
+
+            for i in range(0, 17):
+                if i - 1 < abs((DPS_sum[0] + target_DPS) - (DPS_border / 5) * (done[0] + 1)) < i + 1:
+                    scores_dict[nameart] += (1.2 - i * 0.1) / roops
+
+            for i in range(0, 17):
+                if i - 1 < abs((耐久_sum[0] + target_耐久) - (耐久_border / 5) * (done[0] + 1)) < i + 1:
+                    scores_dict[nameart] += (1.2 - i * 0.1) / roops
+
+            for i in range(0, 17):
+                if i - 1 < abs((CC強度_sum[0] + target_CC強度) - (CC強度_border / 5) * (done[0] + 1)) < i + 1:
+                    scores_dict[nameart] += (0.8- i * 0.1) / roops
+                    
+            for i in range(0, 17):
+                if i - 1 < abs((射程_sum[0] + target_射程) - (射程_border / 5) * (done[0] + 1)) < i + 1:
+                    scores_dict[nameart] += (1.2 - i * 0.1) / roops
+
+            for i in range(0, 17):
+                if i - 1 < abs((AoE_sum[0] + target_AoE) - (AoE_border / 5) * (done[0] + 1)) < i + 1:
+                    scores_dict[nameart] += (0.8 - i * 0.1) / roops
+            # endregion
+
+            # region 加点
             if no_bring[0] >= 2 and target_移動技 == 1: # イワパレス対策
                 scores_dict[nameart] += 0.2 / roops
 
@@ -541,63 +586,67 @@ def calculation():
                 scores_dict[nameart] += 0.4
             elif nameart == "ダークライ（シャドクロ）" and enemy_role == "support" and enemy_回復 == 1: # ノーヒール
                 scores_dict[nameart] -= 0.4
+
+            if ((enemy_role =="mage" or enemy_role =="ADC") # やわらかい敵が多いとスピード加点
+                and enemy_名前 != "エースバーン（きっく）" and enemy_名前 != "エースバーン（かえん）"):
+                assassin_power += 1 / count
+            
+                if assassin_power >= 2 and target_role == "assassin": # やわらかい敵が2体か、3体以上か
+                    scores_dict[nameart] += 0.4
+                    if assassin_power >= 3:
+                        scores_dict[nameart] += 0.6
+
+            if target_射程 == 4 and CC強度_sum[1] > 2.0 * done[1]:
+                scores_dict[nameart] += 0.4 / roops
             
             # ステータス和について
             if nameart == "イワパレス" and no_bring[1] >= 3:
                 scores_dict[nameart] += 0.16
+            # endregion
 
-            for i in range(0, 17):
-                if i - 1 < abs((PS_sum[0] + target_PS) - (PS_border / 5) * (done[0] + 1)) < i + 1:
-                    scores_dict[nameart] += (1.5 - i * 0.2) / roops
-
-            for i in range(0, 17):
-                if i - 1 < abs((DPS_sum[0] + target_DPS) - (DPS_border / 5) * (done[0] + 1)) < i + 1:
-                    scores_dict[nameart] += (1.5 - i * 0.1) / roops
-
-            for i in range(0, 17):
-                if i - 1 < abs((耐久_sum[0] + target_耐久) - (耐久_border / 5) * (done[0] + 1)) < i + 1:
-                    scores_dict[nameart] += (1.5 - i * 0.1) / roops
-
-            for i in range(0, 17):
-                if i - 1 < abs((CC強度_sum[0] + target_CC強度) - (CC強度_border / 5) * (done[0] + 1)) < i + 1:
-                    scores_dict[nameart] += (1.0 - i * 0.1) / roops
-                    
-            for i in range(0, 17):
-                if i - 1 < abs((射程_sum[0] + target_射程) - (射程_border / 5) * (done[0] + 1)) < i + 1:
-                    scores_dict[nameart] += (1.5 - i * 0.1) / roops
-
-            for i in range(0, 17):
-                if i - 1 < abs((AoE_sum[0] + target_AoE) - (AoE_border / 5) * (done[0] + 1)) < i + 1:
-                    scores_dict[nameart] += (1.0 - i * 0.1) / roops
-
-            ally_data = df[df["名前"] == st.session_state["poke_jp"][z - 5]]
-            ally_role = ally_data["role"].values[0]
-            ally_DPS = ally_data["DPS"].values[0]
-            ally_射程 = ally_data["射程"].values[0]
-            ally_対CC = ally_data["対CC"].values[0]
-            ally_回復 = ally_data["回復"].values[0]
-            ally_特殊 = ally_data["特殊"].values[0]
-
-            porker = 0
+            # region 減点
             if ally_射程 == 4:
                 porker += 1
             if target_射程 == 4 and porker > 0:
                 scores_dict[nameart] -= 0.4
 
-            tank = 0
             if ally_role == "tank":
-                tank += 1
-            
-            if target_role == "tank" and tank > 0:
+                ally_tank += 1 / count
+
+            if ally_role == "support" or ally_role == "tank" or ally_role == "kyuwawa-":
+                ally_sapotan += 1 / count
+ 
+            if target_role == "tank" and ally_tank > 0:
                 scores_dict[nameart] -= 0.4
 
-            if no_trust == 1 and (target_role == "support" or target_role == "tank"):
+            if target_role == "support" and ally_sapotan > 1.9:
+                scores_dict[nameart] = 1
+
+            ally_assassin = 0
+            if ally_role == "assassin":
+                ally_assassin += 1
+                        
+            if target_role == "assassin" and ally_assassin > 0:
+                scores_dict[nameart] -= 0.4
+
+            if (target_role == "assassin" or target_role == "ADC") and CC強度_sum[1] > 2.0 * done[1]:
+                scores_dict[nameart] -= 0.4 / roops
+
+            # endregion
+
+            if no_trust == 1 and (target_role == "support" or target_role == "tank"): # サポタンを除外
                 scores_dict[nameart] = 0
 
+            name = nameart.split('（')[0] # 使えないキャラは大幅減点
+            if ally_名前.startswith(name):
+                scores_dict[nameart] = 0
+            if enemy_名前.startswith(name):
+                scores_dict[nameart] = 0
+
+    # ネタキャラを除外
     scores_dict[""] = 0
     scores_dict["バニリッチ"] = 0
     scores_dict["フェン"] = 0
-
 
 calculation()
 
