@@ -409,17 +409,20 @@ def calculation():
 
     PS_border = 11
     DPS_border = 11
-    耐久_border = 11
+    耐久_border = 12
     CC強度_border = 11
     射程_border = 10
     AoE_border = 10
 
     roops = 5
     porker = 0
+    ally_fighter = 0
     ally_tank = 0
-    enemy_fighter = 0
     ally_sapotan = 0
-    
+
+    enemy_ADC = 0
+    enemy_fighter = 0
+
     assassin_power = 0
 
     for z in range(1,6):
@@ -481,7 +484,7 @@ def calculation():
 
 # ///////////////////////////////////////////////////////////////////////////////////////////////
 
-            # region 減点 味方のカウンター欄を抽出
+            # region カウンター欄から減点
             if target_counter and poke_jp.startswith(tuple(target_counter)):
                 scores_dict[nameart] -= 0.4
                 if nameart == "タイレーツ":
@@ -498,13 +501,16 @@ def calculation():
             if "高耐久" in target_counter and 耐久_sum[1] >= 2.4 * done[1]:
                 scores_dict[nameart] -= 0.4 / roops
 
-            if "高CC" in target_counter and CC強度_sum[1] >= 2.4 * done[1]:
-                scores_dict[nameart] -= 0.4 / roops
+            if "高CC" in target_counter:
+                if CC強度_sum[1] >= 2.4 * done[1]:
+                    scores_dict[nameart] -= 0.2 / roops
+                if enemy_CC強度 == 4 and enemy_射程 >= 3:
+                    scores_dict[nameart] -= 0.4 / roops
 
             if "高AoE" in target_counter and AoE_sum[1] >= 2.4 * done[1]:
                 scores_dict[nameart] -= 0.4 / roops
 
-            if "高対CC" in target_counter and 対CC_sum[1] >= 2.4 * done[1]:
+            if "高対CC" in target_counter and 対CC_sum[1] >= 1.6 * done[1]:
                 scores_dict[nameart] -= 0.4 / roops
 
             if nameart == "ドードリオ" and 減速_sum[1] >= 3: # 減速NG
@@ -513,7 +519,7 @@ def calculation():
 
 # ////////////////////////////////////////////////////////////////////////////////////////////
 
-            # region 加点 敵のカウンター欄を抽出
+            # region カウンター欄から加点
             for enemy_counter, degree in counters[1].items():   # counters[1]から敵のカウンターと値を取り出す
                 name = nameart.split('（')[0]   # scores_dictからキーを取り出し、技選択を消す
                 if name == enemy_counter:
@@ -538,13 +544,16 @@ def calculation():
 
                 if enemy_counter == "高対CC" and target_対CC >= 2:
                     scores_dict[nameart] += 0.4 / roops
+
+                if nameart in counters[0]:
+                    scores_dict[nameart] += 0.15 * degree / roops
             # endregion
 
 # /////////////////////////////////////////////////////////////////////////////////////////
 
             # region 基礎得点
             for i in range(0, 17):
-                if i - 1 < abs((PS_sum[0] + target_PS) - (PS_border / 5) * (done[0] + 1)) < i + 1:
+                if i - 2 < abs((PS_sum[0] + target_PS) - (PS_border / 5) * (done[0] + 1)) < i + 2:
                     scores_dict[nameart] += (1.2 - i * 0.2) / roops
 
             for i in range(0, 17):
@@ -553,7 +562,7 @@ def calculation():
 
             for i in range(0, 17):
                 if i - 1 < abs((耐久_sum[0] + target_耐久) - (耐久_border / 5) * (done[0] + 1)) < i + 1:
-                    scores_dict[nameart] += (1.2 - i * 0.1) / roops
+                    scores_dict[nameart] += (1.0 - i * 0.3) / roops
 
             for i in range(0, 17):
                 if i - 1 < abs((CC強度_sum[0] + target_CC強度) - (CC強度_border / 5) * (done[0] + 1)) < i + 1:
@@ -583,33 +592,66 @@ def calculation():
             if poke_jp == "ハッサム" and target_特殊 == 1 and target_DPS >= 2:
                 scores_dict[nameart] += 0.2
 
+            if (nameart == "ギャラドス" or nameart == "メガギャラドス") and PS_sum[1] > 2.6 * done[1]:
+                scores_dict[nameart] += 0.2 / roops
+
+            if (nameart == "カメックス" or nameart == "ガブリアス") and AoE_sum[0] > 2 * done[0]:
+                scores_dict[nameart] += 0.2 / roops
+            if (ally_名前 == "カメックス" or ally_名前 == "ガブリアス") and target_AoE > 2:
+                scores_dict[nameart] += 0.05
+                
+            if (nameart == "ラティオス（りゅうは）" or nameart == "ラティオス（流星群）") and 耐久_sum[1] >= 12:
+                scores_dict[nameart] += 0.2 / roops
+
             if nameart == "ダークライ（シャドクロ）" and enemy_role == "support" and enemy_回復 == 0: # ノーヒール
                 scores_dict[nameart] += 0.4
             elif nameart == "ダークライ（シャドクロ）" and enemy_role == "support" and enemy_回復 == 1: # ノーヒール
                 scores_dict[nameart] -= 0.4
 
+            if enemy_role == "ADC":
+                enemy_ADC += 1
+            if nameart == "ラプラス" or nameart == "ヤドラン" or nameart == "フリーザー" or nameart == "ヌメルゴン":
+                if enemy_ADC == 0:
+                    scores_dict[nameart] += 0.4 / roops
+            elif target_role == "tank":
+                if enemy_ADC != 0:
+                    scores_dict[nameart] += 0.1 / roops
+
+            if target_role == "fighter":
+                ally_fighter += 1
+            if ally_fighter >= 2 and target_role == "support" and target_回復 == 1:
+                scores_dict[nameart] += 0.4 / roops
+
             if enemy_role == "fighter":
                 enemy_fighter += 1
-                if (nameart == "マフォクシー（ニトチャ）" or nameart == "アローラキュウコン（ふぶき）") and enemy_fighter >= 2:
-                    scores_dict[nameart] += 0.4
+            if (nameart == "マフォクシー（ニトチャ）" or nameart == "アローラキュウコン（ふぶき）") and enemy_fighter >= 2:
+                scores_dict[nameart] += 0.4
 
             if ((enemy_role =="mage" or enemy_role =="ADC") # やわらかい敵が多いとスピード加点
-                and enemy_名前 != "エースバーン（きっく）" and enemy_名前 != "エースバーン（かえん）"):
+                and poke_jp != "エースバーン（きっく）" and poke_jp != "エースバーン（かえん）"):
                 assassin_power += 1 / count
             
-                if assassin_power >= 2 and target_role == "assassin": # やわらかい敵が2体か、3体以上か
-                    scores_dict[nameart] += 0.4
-                    if assassin_power >= 3:
-                        scores_dict[nameart] += 0.6
+            if assassin_power >= 2 and target_role == "assassin": # やわらかい敵が2体か、3体以上か
+                scores_dict[nameart] += 0.4 / roops
+            if assassin_power >= 3:
+                scores_dict[nameart] += 0.6 / roops
 
             if (target_role == "assassin" or target_射程 == 4) and enemy_射程 == 4: # 射程4が多いと 射程4とアサシンを加点
-                scores_dict[nameart] += 0.4
+                scores_dict[nameart] += 0.2
 
             if target_射程 == 4 and CC強度_sum[1] > 2.0 * done[1]:
                 scores_dict[nameart] += 0.4 / roops
             
             if nameart == "イワパレス" and no_bring[1] >= 3:
                 scores_dict[nameart] += 0.16
+
+            if target_対CC > 0 and enemy_CC強度 > 3:
+                scores_dict[nameart] += 0.05
+            if target_対CC >= 2:
+                scores_dict[nameart] += 0.05
+                if target_対CC == 4:
+                        scores_dict[nameart] += 0.1
+            
             # endregion
 
 # ////////////////////////////////////////////////////////////////////////////////////////////////
@@ -627,10 +669,19 @@ def calculation():
             if nameart == "ドードリオ" and enemy_CC強度 == 4:
                 scores_dict[nameart] -= 0.4
 
+            if poke_jp == "スイクン" and target_role == "ADC":
+                scores_dict[nameart] -= 0.4
+
+            if (nameart == "ギャラドス" or nameart == "メガギャラドス") and target_role == "support" and target_回復 == 0:
+                scores_dict[nameart] -= 0.2 / roops
+
+            if poke_jp == "ブラッキー（くろまな）" and target_射程 <= 2 and target_対CC != 1: 
+                scores_dict[nameart] -= 0.4
+
             if ally_射程 == 4:
                 porker += 1
             if target_射程 == 4 and porker > 0:
-                scores_dict[nameart] -= 0.4
+                scores_dict[nameart] -= 0.4 / roops
 
             if ally_role == "tank":
                 ally_tank += 1 / count
@@ -641,46 +692,74 @@ def calculation():
             if target_role == "tank" and ally_tank > 0:
                 scores_dict[nameart] -= 0.4
 
-            if target_role == "support" and ally_sapotan > 1.9:
-                scores_dict[nameart] = 1
+            if (target_role == "support" or target_role == "tank") and ally_sapotan > 1.9:
+                scores_dict[nameart] = -100
 
             ally_assassin = 0
             if ally_role == "assassin":
                 ally_assassin += 1
-                if target_role == "assassin" and ally_assassin > 0:
-                    scores_dict[nameart] -= 0.8
+            if target_role == "assassin" and ally_assassin > 0:
+                scores_dict[nameart] -= 1.6 / roops
             
             if (target_role == "assassin" or target_role == "ADC") and CC強度_sum[1] > 2.0 * done[1]:
                 scores_dict[nameart] -= 0.4 / roops
 
             if target_role == "fighter" and target_対CC == 0 and enemy_CC強度 == 4:
                 scores_dict[nameart] -= 0.8
+
+            if ((target_role == "support" or nameart == "ミュウ1" or nameart == "パルキア" or nameart == "イベルタル" or nameart == "ストリンダー"
+                 or nameart.startswith("エーフィ") or nameart.startswith("ミュウツーX")) and done[0] == 0):
+                pass
+            else:
+                scores_dict[nameart] -= 0.5 * done[0]
             # endregion
 
 # ///////////////////////////////////////////////////////////////////////////
-
-            if no_trust == 1 and (target_role == "support" or target_role == "tank"): # サポタンを除外
-                scores_dict[nameart] = 0
-
-            name = nameart.split('（')[0] # 使えないキャラは大幅減点
-            if ally_名前.startswith(name):
-                scores_dict[nameart] = 0
-            if enemy_名前.startswith(name):
-                scores_dict[nameart] = 0
 
     # ネタキャラを除外
     scores_dict[""] = 0
     scores_dict["バニリッチ"] = 0
     scores_dict["フェン"] = 0
 
+    for nameart, degree in scores_dict.items():
+        name = nameart.split('（')[0]
+        target_datas = df[df["名前"] == nameart].to_dict(orient="records")[0]
+        target_role = target_datas["role"]
+        if no_trust == 1 and (target_role == "support" or target_role == "tank"): # サポタンを除外
+            scores_dict[nameart] = 0
+        if (done[0] == 0 and done[1] == 0) or done[0] == 5:
+            scores_dict[nameart] = 0
+        for z in range(1,11):
+            if st.session_state["poke_jp"][z].startswith(name): # 使えないキャラを削除
+                scores_dict[nameart] = 0
+
 calculation()
 
 scores_dict = {k: round(v, 1) for k, v in scores_dict.items()}
-non_zero_scores = {k: v for k, v in scores_dict.items() if v != 0}
-
-scores_dict_desc = dict(sorted({k: v for k, v in scores_dict.items() if v != 0}.items(),
+scores_dict = dict(sorted({k: v for k, v in scores_dict.items() if v > 0}.items(),
     key=lambda x: x[1], reverse=True))
-st.write(scores_dict_desc)
+
+selected_eng = st.selectbox("select",df["name"])
+selected_jp = translate.get(selected_eng)
+
+selected_data = scores_dict.get(selected_jp,0)
+st.write(selected_data)
+teruru = ["エーフィ（サイコショック）","ハッサム","ミライドン（ぎゅいーん）","パルキア",
+          "ダークライ（シャドクロ）","フシギバナ（レーザー）","アローラキュウコン（ふぶき）",
+          "ギャラドス","ラプラス",]
+value = 0
+max = 0
+max_key = {}
+for key in teruru:
+    if key in scores_dict:
+        value = scores_dict[key]
+        if value > max:
+            max = value
+            max_key = key
+    st.write(key,"→", value)
+st.write("max=", max_key, max)
+
+st.write(scores_dict)
 
 
 
