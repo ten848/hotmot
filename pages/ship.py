@@ -398,6 +398,7 @@ for z in range(0, 11):
 
 with st.expander("counters"):
     st.write(counters)
+
 def calculation():
     for key in scores_dict:
         scores_dict[key] = 0.0
@@ -672,8 +673,8 @@ def calculation():
             if poke_jp == "スイクン" and target_role == "ADC":
                 scores_dict[nameart] -= 0.4
 
-            if (nameart == "ギャラドス" or nameart == "メガギャラドス") and target_role == "support" and target_回復 == 0:
-                scores_dict[nameart] -= 0.2 / roops
+            if (nameart == "ギャラドス" or nameart == "メガギャラドス") and enemy_role == "support" and enemy_回復 == 0:
+                scores_dict[nameart] -= 1.0
 
             if poke_jp == "ブラッキー（くろまな）" and target_射程 <= 2 and target_対CC != 1: 
                 scores_dict[nameart] -= 0.4
@@ -707,11 +708,10 @@ def calculation():
             if target_role == "fighter" and target_対CC == 0 and enemy_CC強度 == 4:
                 scores_dict[nameart] -= 0.8
 
-            if ((target_role == "support" or nameart == "ミュウ1" or nameart == "パルキア" or nameart == "イベルタル" or nameart == "ストリンダー"
-                 or nameart.startswith("エーフィ") or nameart.startswith("ミュウツーX")) and done[0] == 0):
-                pass
-            else:
-                scores_dict[nameart] -= 0.5 * done[0]
+            if not (target_role == "support" or nameart == "ミュウ1" or nameart == "パルキア" or nameart == "イベルタル" or nameart == "ストリンダー"
+                 or nameart.startswith("エーフィ") or nameart.startswith("ミュウツーX")):
+                if done[0] == 0:
+                    scores_dict[nameart] -= 0.5 * done[0] / roops
             # endregion
 
 # ///////////////////////////////////////////////////////////////////////////
@@ -730,8 +730,9 @@ def calculation():
         if (done[0] == 0 and done[1] == 0) or done[0] == 5:
             scores_dict[nameart] = 0
         for z in range(1,11):
-            if st.session_state["poke_jp"][z].startswith(name): # 使えないキャラを削除
-                scores_dict[nameart] = 0
+            if st.session_state["poke_jp"][z] != "":
+                if st.session_state["poke_jp"][z].startswith(name): # 使えないキャラを削除
+                    scores_dict[nameart] = 0
 
 calculation()
 
@@ -747,6 +748,7 @@ st.write(selected_data)
 teruru = ["エーフィ（サイコショック）","ハッサム","ミライドン（ぎゅいーん）","パルキア",
           "ダークライ（シャドクロ）","フシギバナ（レーザー）","アローラキュウコン（ふぶき）",
           "ギャラドス","ラプラス",]
+
 value = 0
 max = 0
 max_key = {}
