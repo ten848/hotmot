@@ -497,6 +497,8 @@ def calculation():
             if "射程4" in target_counter:
                 if enemy_射程 == 4:
                     scores_dict[nameart] -= 0.4
+                    if nameart == "アローラキュウコン（ふぶき）":
+                        scores_dict[nameart] -= 0.4
 
             # ステータス和について
             if "高耐久" in target_counter and 耐久_sum[1] >= 2.4 * done[1]:
@@ -546,8 +548,8 @@ def calculation():
                 if enemy_counter == "高対CC" and target_対CC >= 2:
                     scores_dict[nameart] += 0.4 / roops
 
-                if nameart in counters[0]:
-                    scores_dict[nameart] += 0.15 * degree / roops
+            if name in counters[0]:
+                scores_dict[nameart] += 0.2 * degree / roops
             # endregion
 
 # /////////////////////////////////////////////////////////////////////////////////////////
@@ -648,10 +650,10 @@ def calculation():
 
             if target_対CC > 0 and enemy_CC強度 > 3:
                 scores_dict[nameart] += 0.05
-            if target_対CC >= 2:
-                scores_dict[nameart] += 0.05
-                if target_対CC == 4:
-                        scores_dict[nameart] += 0.1
+                if target_対CC >= 2:
+                    scores_dict[nameart] += 0.05
+                    if target_対CC == 4:
+                            scores_dict[nameart] += 0.1
             
             # endregion
 
@@ -737,31 +739,32 @@ def calculation():
 calculation()
 
 scores_dict = {k: round(v, 1) for k, v in scores_dict.items()}
-scores_dict = dict(sorted({k: v for k, v in scores_dict.items() if v > 0}.items(),
+plus_scores_dict = dict(sorted({k: v for k, v in scores_dict.items() if v > 0}.items(),
     key=lambda x: x[1], reverse=True))
 
 selected_eng = st.selectbox("select",df["name"])
 selected_jp = translate.get(selected_eng)
 
-selected_data = scores_dict.get(selected_jp,0)
+selected_data = plus_scores_dict.get(selected_jp,0)
 st.write(selected_data)
 teruru = ["エーフィ（サイコショック）","ハッサム","ミライドン（ぎゅいーん）","パルキア",
           "ダークライ（シャドクロ）","フシギバナ（レーザー）","アローラキュウコン（ふぶき）",
           "ギャラドス","ラプラス",]
 
-value = 0
+
 max = 0
 max_key = {}
 for key in teruru:
-    if key in scores_dict:
-        value = scores_dict[key]
+    value = 0
+    if key in plus_scores_dict:
+        value = plus_scores_dict[key]
         if value > max:
             max = value
             max_key = key
     st.write(key,"→", value)
 st.write("max=", max_key, max)
 
-st.write(scores_dict)
+st.write(plus_scores_dict)
 
 
 
