@@ -664,7 +664,6 @@ def calculation():
                 and (target_role == "ADC" or target_role == "assassin" or target_role == "fighter")): 
                 scores_dict[nameart] -= 0.4
             
-
             if nameart == "ピクシー（じゅうりょく）":
                 if enemy_射程 <= 2 and enemy_移動技 == 1:
                     scores_dict[nameart] += 0.4
@@ -702,7 +701,7 @@ def calculation():
     
             if nameart == "ラプラス" or nameart == "ヤドラン" or nameart == "フリーザー" or nameart == "ヌメルゴン":
                 if enemy_ADC == 0:
-                    scores_dict[nameart] += 0.4 / roops
+                    scores_dict[nameart] += 0.8 / roops
             elif target_role == "tank":
                 if enemy_ADC != 0:
                     scores_dict[nameart] += 0.1 / roops
@@ -763,7 +762,7 @@ def calculation():
             if not (target_role == "support" or nameart == "ミュウ1" or nameart == "パルキア" or nameart == "イベルタル" or nameart == "ストリンダー"
                  or nameart.startswith("エーフィ") or nameart.startswith("ミュウツーX")):
                 if done[0] == 0:
-                    scores_dict[nameart] -= 0.5 * done[0] / roops
+                    scores_dict[nameart] -= 0.5 / roops
             # endregion
 
 # ///////////////////////////////////////////////////////////////////////////
