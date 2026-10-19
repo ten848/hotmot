@@ -608,7 +608,7 @@ def calculation():
             if poke_jp == "ドードリオ" and target_減速 == 1: # 減速推奨
                 scores_dict[nameart] += 0.4
             
-            if nameart == "ダークライ（シャドクロ）" and enemy_role == "support":
+            if (nameart == "ダークライ（シャドクロ）" or nameart == "エーフィ（バラマキ）") and enemy_role == "support":
                 if enemy_回復 == 0: # ノーヒール
                     scores_dict[nameart] += 0.4
                 else:
@@ -664,7 +664,7 @@ def calculation():
                     scores_dict[nameart] -= 0.4
 
             if target_CC強度 >= 3 and enemy_対CC >= 2:
-                scores_dict[nameart] -= 0.8
+                scores_dict[nameart] -= 2.0
             if enemy_CC強度 >= 3 and target_対CC >= 2:
                 scores_dict[nameart] += 0.4
 
@@ -768,11 +768,11 @@ plus_scores_dict = dict(sorted({k: v for k, v in scores_dict.items() if v > 0}.i
 max = 0
 max_key = {}
 teruru_keys = ["フシギバナ（レーザー）","ピカチュウ（ボルテ）","ピカチュウ（十万V）","アローラキュウコン（ふぶき）",
-               "ギャラドス","ラプラス","エーフィ（サイコショック）","ブラッキー（イカサマ）","ブラッキー（くろまな）",
-               "ハッサム","スイクン","メガルカリオ","リーフィア","パルキア","ダークライ（シャドクロ）","レシラム",
-               "マフォクシー（うず）","ゲッコウガ（手裏剣）","ギルガルド","ニンフィア（ボイス）","ダダリン",
-               "エースバーン（かえん）","モルペコ","パーモット","グレンアルマ（キャノン）","グレンアルマ（うず）",
-               "ミライドン（ぎゅいーん）",
+               "ギャラドス","ラプラス","シャワーズ（aqua）","カビゴン（ヘビボン）","エーフィ（サイコショック）","ブラッキー（イカサマ）","ブラッキー（くろまな）",
+               "ハッサム","ラティアス（ミスト）","スイクン","メガルカリオ","リーフィア","パルキア","ダークライ（シャドクロ）",
+               "イワパレス","レシラム","マフォクシー（うず）","ゲッコウガ（手裏剣）","ギルガルド","ニンフィア（ボイス）",
+               "オーロット","イベルタル","ダダリン","エースバーン（かえん）","ワタシラガ（かふんだんご）","モルペコ","パーモット","グレンアルマ（キャノン）",
+               "グレンアルマ（うず）","ミライドン（ぎゅいーん）",
                ]
 
 teruru_dict = {k: plus_scores_dict[k] for k in teruru_keys if k in plus_scores_dict}
@@ -895,7 +895,7 @@ selected_data = plus_scores_dict.get(selected_jp,0)
 st.write(selected_data)
 
 # st.write(top3_teruru)
-# st.write(plus_scores_dict)
+st.write(plus_scores_dict)
 
 col1, col2, col3 = st.columns(3)
 with col1:
