@@ -3,7 +3,7 @@
 # st.write("-----7:45------6:15------4:45-----------3:15------------1:45----------")
 # st.write("---------------------------------4:30-----------3:00------------1:30------")
 import streamlit as st
-import urllib.parse
+import base64
 from PIL import Image
 from streamlit_image_coordinates import streamlit_image_coordinates
 from db import read_table
@@ -201,29 +201,7 @@ with col2:
         st.switch_page("pages/map.py")
 #endregion
 
-container2 = st.container(key="container2")
-with container2:
-    if st.button("レーン宣告"):
-        for i in range(1, 6):
-            declared_lane = st.session_state["target"][i]
-            st.session_state["lanes"][i] = declared_lane
-            add_record(lane=declared_lane, player_num=i)
-            
-        st.rerun()
-
-st.markdown("""
-    <style>
-    .st-key-container2 div.stButton > button {position: absolute; top: -104px; left: 0px;
-    width: 169px; height: 64px; min-height: 0px; margin-top: 0px}
-    .st-key-container2 div.stButton > button * {font-size: 16px}
-    .st-key-container2 div.stButton > button:hover,
-    .st-key-container2 div.stButton > button:focus {opacity: 1 !important; background: #0E1117  !important;}
-    </style>
-    """,
-    unsafe_allow_html= True)
-
-status = ["role","PS","DPS","耐久","CC強度","射程","AoE","ラスヒ","対CC","回復","減速","移動技","LCC","特殊"]
-
+# region def
 data = [None] * 11
 PS_df = [None] * 11
 DPS_df = [None] * 11
@@ -255,6 +233,7 @@ LCC_sum= [0] * 2
 
 if "poke_jp" not in st.session_state:
     st.session_state["poke_jp"] = [None] * 11
+# endregion
 
 import ast
 df["カウンター"] = df["カウンター"].apply(ast.literal_eval)
@@ -313,30 +292,31 @@ def status_sum():
 
 status_sum()
 
+container2 = st.container(key="container2")
+with container2:
+    if st.button("レーン宣告"):
+        for i in range(1, 6):
+            declared_lane = st.session_state["target"][i]
+            st.session_state["lanes"][i] = declared_lane
+            add_record(lane=declared_lane, player_num=i)
+            
+        st.rerun()
+
+st.markdown("""
+    <style>
+    .st-key-container2 div.stButton > button {position: absolute; top: -104px; left: 0px;
+    width: 169px; height: 64px; min-height: 0px; margin-top: 0px}
+    .st-key-container2 div.stButton > button * {font-size: 16px}
+    .st-key-container2 div.stButton > button:hover,
+    .st-key-container2 div.stButton > button:focus {opacity: 1 !important; background: #0E1117  !important;}
+    </style>
+    """,
+    unsafe_allow_html= True)
+
 if st.checkbox("サポタンなし"):
     no_trust = 1
 else:
     no_trust = 0
-
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.write("PS=", PS_sum[0], PS_sum[1])
-    st.write("DPS=", DPS_sum[0], DPS_sum[1])
-    st.write("耐久=", 耐久_sum[0], 耐久_sum[1])
-    st.write("CC強度=", CC強度_sum[0], CC強度_sum[1])
-
-with col2:
-    st.write("射程=", 射程_sum[0], 射程_sum[1])
-    st.write("AoE=", AoE_sum[0], AoE_sum[1])
-    st.write("ラスヒ=", ラスヒ_sum[0], ラスヒ_sum[1])
-    st.write("対CC=", 対CC_sum[0], 対CC_sum[1])
-
-with col3:
-    st.write("回復=", 回復_sum[0], 回復_sum[1])
-    st.write("減速=", 減速_sum[0], 減速_sum[1])
-    st.write("移動技=", 移動技_sum[0], 移動技_sum[1])
-    st.write("LCC=", LCC_sum[0], LCC_sum[1])
-    st.write("特殊=", 特殊_sum[0], 特殊_sum[1])
 
 from collections import defaultdict
 
@@ -351,9 +331,6 @@ def all_counter_dict():
     return dict(all_dict)
 
 all_dict = all_counter_dict()
-with st.expander("カウンターされやすさ"):
-    st.write(all_dict)
-
 counters = {0: defaultdict(int), 1: defaultdict(int)}
 
 for z in range(1, 11):
@@ -373,9 +350,6 @@ def average_status():
     numeric_df = df.select_dtypes(include=["int64", "float64"])
     return numeric_df.mean()
 
-average = average_status()
-with st.expander("average"):
-    st.write(average)
 
 all = df[df["name"] != ""].copy()
 
@@ -391,13 +365,11 @@ scores_dict = {name: 0 for name in df["名前"]}
 count = len(scores_dict)
 
 translate = dict(zip(df["name"], df["名前"]))
+re_translate = dict(zip(df["名前"], df["name"]))
 
 for z in range(0, 11):
     eng = st.session_state["pokemon"][z]
     st.session_state["poke_jp"][z] = translate.get(eng)
-
-with st.expander("counters"):
-    st.write(counters)
 
 def calculation():
     for key in scores_dict:
@@ -518,12 +490,6 @@ def calculation():
 
             if "高AoE" in target_counter and AoE_sum[1] >= 2.4 * done[1]:
                 scores_dict[nameart] -= 0.4 / roops
-
-            if "高対CC" in target_counter and 対CC_sum[1] >= 1.6 * done[1]:
-                scores_dict[nameart] -= 0.4 / roops
-
-            if nameart == "ドードリオ" and 減速_sum[1] >= 3: # 減速NG
-                scores_dict[nameart] -= 0.8 / roops
             #endregion
 
 # ////////////////////////////////////////////////////////////////////////////////////////////
@@ -548,9 +514,6 @@ def calculation():
                     scores_dict[nameart] += 0.4 / roops
 
                 if enemy_counter == "高AoE" and target_AoE == 4:
-                    scores_dict[nameart] += 0.4 / roops
-
-                if enemy_counter == "高対CC" and target_対CC >= 2:
                     scores_dict[nameart] += 0.4 / roops
 
             if name in counters[0]:
@@ -605,7 +568,11 @@ def calculation():
             if poke_jp.startswith("ラティオス") and target_role == "tank" and target_移動技 == 0:
                 scores_dict[nameart] -= 0.2
             
-
+            if nameart == "ソウブレイズ" and enemy_対CC == 1:
+                scores_dict[nameart] -= 0.2
+            if poke_jp == "ソウブレイズ" and target_対CC == 1:
+                scores_dict[nameart] += 0.2
+            
             if nameart == "ストリンダー" and enemy_耐久 == 4:
                 scores_dict[nameart] += 0.2
             if poke_jp == "ストリンダー" and target_耐久 == 4:
@@ -634,11 +601,13 @@ def calculation():
                 scores_dict[nameart] -= 0.4
             if poke_jp == "ドードリオ" and target_CC強度 == 4:
                 scores_dict[nameart] += 0.4
+            if nameart == "ドードリオ" and 減速_sum[1] >= 3: # 減速NG
+                scores_dict[nameart] -= 0.8 / roops
             if nameart == "ドードリオ" and done[1] == 5 and 減速_sum[1] == 0:
                 scores_dict[nameart] += 0.4 / roops
             if poke_jp == "ドードリオ" and target_減速 == 1: # 減速推奨
                 scores_dict[nameart] += 0.4
-
+            
             if nameart == "ダークライ（シャドクロ）" and enemy_role == "support":
                 if enemy_回復 == 0: # ノーヒール
                     scores_dict[nameart] += 0.4
@@ -693,7 +662,12 @@ def calculation():
                                 scores_dict[nameart] += 0.1
                 elif (target_role == "assassin" or target_role == "fighter") and nameart != "ゲンガー（たたりめ）":
                     scores_dict[nameart] -= 0.4
-            
+
+            if target_CC強度 >= 3 and enemy_対CC >= 2:
+                scores_dict[nameart] -= 0.8
+            if enemy_CC強度 >= 3 and target_対CC >= 2:
+                scores_dict[nameart] += 0.4
+
             if target_role == "ADC":
                 ally_ADC += 1
             if enemy_role == "ADC":
@@ -791,30 +765,164 @@ scores_dict = {k: round(v, 1) for k, v in scores_dict.items()}
 plus_scores_dict = dict(sorted({k: v for k, v in scores_dict.items() if v > 0}.items(),
     key=lambda x: x[1], reverse=True))
 
+max = 0
+max_key = {}
+teruru_keys = ["フシギバナ（レーザー）","ピカチュウ（ボルテ）","ピカチュウ（十万V）","アローラキュウコン（ふぶき）",
+               "ギャラドス","ラプラス","エーフィ（サイコショック）","ブラッキー（イカサマ）","ブラッキー（くろまな）",
+               "ハッサム","スイクン","メガルカリオ","リーフィア","パルキア","ダークライ（シャドクロ）","レシラム",
+               "マフォクシー（うず）","ゲッコウガ（手裏剣）","ギルガルド","ニンフィア（ボイス）","ダダリン",
+               "エースバーン（かえん）","モルペコ","パーモット","グレンアルマ（キャノン）","グレンアルマ（うず）",
+               "ミライドン（ぎゅいーん）",
+               ]
+
+teruru_dict = {k: plus_scores_dict[k] for k in teruru_keys if k in plus_scores_dict}
+teruru_dict = dict(sorted({k: v for k, v in teruru_dict.items()}.items(), key = lambda x: x[1], reverse = True))
+# top3_teruru = dict(sorted(teruru_dict.items(), key = lambda x: x[1],reverse = True)[:3])
+# top3_ten = dict(sorted(plus_scores_dict.items(), key = lambda x: x[1],reverse = True)[:3])
+
+recommend_list = []
+for recommend in plus_scores_dict.keys():
+    recommend = re_translate.get(recommend)
+    recommend = recommend.split('(')[0]
+    with open(f"images/pokemon/{recommend}.png", "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+        recommend_list.append(encoded)
+
+sapotan_scores_dict = {}
+non_sapotan_scores_dict = {}
+for key, value in plus_scores_dict.items():
+    data = df[df["名前"] == key]
+    role = data["role"].values[0]
+    if role == "tank" or role == "support":
+        sapotan_scores_dict[key] = value
+    else:
+        non_sapotan_scores_dict[key] = value
+
+sapotan_recommend_list = []
+non_sapotan_recommend_list = []
+for recommend in sapotan_scores_dict.keys():
+    recommend = re_translate.get(recommend)
+    recommend = recommend.split('(')[0]
+    with open(f"images/pokemon/{recommend}.png", "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+        sapotan_recommend_list.append(encoded)
+for recommend in non_sapotan_scores_dict.keys():
+    recommend = re_translate.get(recommend)
+    recommend = recommend.split('(')[0]
+    with open(f"images/pokemon/{recommend}.png", "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+        non_sapotan_recommend_list.append(encoded)
+
+for i in range(0,3):
+    html = f"""
+    <div style="position: relative; height: 100px;">
+        <img src="data:image/png;base64,{non_sapotan_recommend_list[i]}" 
+            width="50" height="50"
+            style="position: absolute; top: calc(-725px - {200 * i}px); right: calc(745px - {50 * i}px);">
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+    html = f"""
+        <div style="position: relative; height: 100px;">
+            <img src="data:image/png;base64,{sapotan_recommend_list[i]}" 
+                width="50" height="50"
+                style="position: absolute; top: calc(-825px - {200 * i}px); right: calc(545px - {50 * i}px);">
+            </div>
+        </div>
+        """
+    st.markdown(html, unsafe_allow_html=True)
+
+teru_recommend_list = []
+for recommend in teruru_dict.keys():
+    recommend = re_translate.get(recommend)
+    recommend = recommend.split('(')[0]
+    with open(f"images/pokemon/{recommend}.png", "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+        teru_recommend_list.append(encoded)
+
+teru_sapotan_scores_dict = {}
+teru_non_sapotan_scores_dict = {}
+for key, value in teruru_dict.items():
+    data = df[df["名前"] == key]
+    role = data["role"].values[0]
+    if role == "tank" or role == "support":
+        teru_sapotan_scores_dict[key] = value
+    else:
+        teru_non_sapotan_scores_dict[key] = value
+
+teru_sapotan_recommend_list = []
+teru_non_sapotan_recommend_list = []
+for recommend in teru_sapotan_scores_dict.keys():
+    recommend = re_translate.get(recommend)
+    recommend = recommend.split('(')[0]
+    with open(f"images/pokemon/{recommend}.png", "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+        teru_sapotan_recommend_list.append(encoded)
+for recommend in teru_non_sapotan_scores_dict.keys():
+    recommend = re_translate.get(recommend)
+    recommend = recommend.split('(')[0]
+    with open(f"images/pokemon/{recommend}.png", "rb") as f:
+        encoded = base64.b64encode(f.read()).decode("utf-8")
+        teru_non_sapotan_recommend_list.append(encoded)
+
+for i in range(0,3):
+    html = f"""
+    <div style="position: relative; height: 100px;">
+        <img src="data:image/png;base64,{teru_non_sapotan_recommend_list[i]}" 
+            width="50" height="50"
+            style="position: absolute; top: calc(-1325px - {200 * i}px); right: calc(210px - {50 * i}px);">
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+    html = f"""
+        <div style="position: relative; height: 100px;">
+            <img src="data:image/png;base64,{teru_sapotan_recommend_list[i]}" 
+                width="50" height="50"
+                style="position: absolute; top: calc(-1425px - {200 * i}px); right: calc(10px - {50 * i}px);">
+            </div>
+        </div>
+        """
+    st.markdown(html, unsafe_allow_html=True)
+
 selected_eng = st.selectbox("select",df["name"])
 selected_jp = translate.get(selected_eng)
 
 selected_data = plus_scores_dict.get(selected_jp,0)
 st.write(selected_data)
-teruru = ["エーフィ（サイコショック）","ハッサム","ミライドン（ぎゅいーん）","パルキア",
-          "ダークライ（シャドクロ）","フシギバナ（レーザー）","アローラキュウコン（ふぶき）",
-          "ギャラドス","ラプラス",]
 
+# st.write(top3_teruru)
+# st.write(plus_scores_dict)
 
-max = 0
-max_key = {}
-for key in teruru:
-    value = 0
-    if key in plus_scores_dict:
-        value = plus_scores_dict[key]
-        if value > max:
-            max = value
-            max_key = key
-    st.write(key,"→", value)
-st.write("max=", max_key, max)
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.write("PS=", PS_sum[0], PS_sum[1])
+    st.write("DPS=", DPS_sum[0], DPS_sum[1])
+    st.write("耐久=", 耐久_sum[0], 耐久_sum[1])
+    st.write("CC強度=", CC強度_sum[0], CC強度_sum[1])
 
-st.write(plus_scores_dict)
+with col2:
+    st.write("射程=", 射程_sum[0], 射程_sum[1])
+    st.write("AoE=", AoE_sum[0], AoE_sum[1])
+    st.write("ラスヒ=", ラスヒ_sum[0], ラスヒ_sum[1])
+    st.write("対CC=", 対CC_sum[0], 対CC_sum[1])
 
+with col3:
+    st.write("回復=", 回復_sum[0], 回復_sum[1])
+    st.write("減速=", 減速_sum[0], 減速_sum[1])
+    st.write("移動技=", 移動技_sum[0], 移動技_sum[1])
+    st.write("LCC=", LCC_sum[0], LCC_sum[1])
+    st.write("特殊=", 特殊_sum[0], 特殊_sum[1])
 
+with st.expander("カウンターされやすさ"):
+    st.write(all_dict)
 
+average = average_status()
+with st.expander("average"):
+    st.write(average)
 
+with st.expander("counters"):
+    st.write(counters)
