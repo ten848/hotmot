@@ -724,14 +724,24 @@ def calculation():
             if (target_role == "assassin" or target_射程 == 4) and enemy_射程 == 4: # 射程4が敵にいると 射程4とアサシンを加点
                 scores_dict[nameart] += 0.2
 
-            if ((enemy_role =="mage" or enemy_role =="ADC") # やわらかい敵が多いとスピード加点
+            if ((enemy_role =="mage" or enemy_role =="ADC"
+                 or nameart == "イベルタル" or nameart == "ストリンダー"
+                or nameart == "エーフィ（バラマキ）" or nameart.startswith("ラティアス")) # やわらかい敵が多いとスピード加点
                 and poke_jp != "エースバーン（きっく）" and poke_jp != "エースバーン（かえん）"):
                 assassin_power += 1 / count
             
-            if assassin_power >= 2 and target_role == "assassin": # やわらかい敵が2体か、3体以上か
-                scores_dict[nameart] += 0.4 / roops
-            if assassin_power >= 3:
-                scores_dict[nameart] += 0.6 / roops
+                if assassin_power >= 2 and target_role == "assassin": # やわらかい敵が2体か、3体以上か
+                    scores_dict[nameart] += 0.4 / roops
+                if assassin_power >= 3:
+                    scores_dict[nameart] += 0.6 / roops
+
+            if ((target_role =="mage" or target_role =="ADC"
+                 or nameart == "イベルタル" or nameart == "ストリンダー"
+                 or nameart == "エーフィ（バラマキ）" or nameart.startswith("ラティアス")) # 敵にスピードがいたらやわらかいポケモン減点
+                 and nameart != "エースバーン（きっく）" and nameart != "エースバーン（かえん）"
+                 and enemy_role == "assassin"):
+                    scores_dict[nameart] -= 1.5
+
 
             if not (target_role == "support" or nameart == "ミュウ1" or nameart == "パルキア" or nameart == "イベルタル" or nameart == "ストリンダー"
                  or nameart.startswith("エーフィ") or nameart.startswith("ミュウツーX")):
@@ -813,27 +823,6 @@ for recommend in non_sapotan_scores_dict.keys():
         encoded = base64.b64encode(f.read()).decode("utf-8")
         non_sapotan_recommend_list.append(encoded)
 
-for i in range(0,3):
-    html = f"""
-    <div style="position: relative; height: 100px;">
-        <img src="data:image/png;base64,{non_sapotan_recommend_list[i]}" 
-            width="50" height="50"
-            style="position: absolute; top: calc(-725px - {200 * i}px); right: calc(745px - {50 * i}px);">
-        </div>
-    </div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
-
-    html = f"""
-        <div style="position: relative; height: 100px;">
-            <img src="data:image/png;base64,{sapotan_recommend_list[i]}" 
-                width="50" height="50"
-                style="position: absolute; top: calc(-825px - {200 * i}px); right: calc(545px - {50 * i}px);">
-            </div>
-        </div>
-        """
-    st.markdown(html, unsafe_allow_html=True)
-
 teru_recommend_list = []
 for recommend in teruru_dict.keys():
     recommend = re_translate.get(recommend)
@@ -867,22 +856,57 @@ for recommend in teru_non_sapotan_scores_dict.keys():
         encoded = base64.b64encode(f.read()).decode("utf-8")
         teru_non_sapotan_recommend_list.append(encoded)
 
-for i in range(0,3):
+x = len(non_sapotan_recommend_list)
+if x > 3:
+    x = 3
+for i in range(0, x):
     html = f"""
     <div style="position: relative; height: 100px;">
-        <img src="data:image/png;base64,{teru_non_sapotan_recommend_list[i]}" 
+        <img src="data:image/png;base64,{non_sapotan_recommend_list[i]}" 
             width="50" height="50"
-            style="position: absolute; top: calc(-1325px - {200 * i}px); right: calc(210px - {50 * i}px);">
+            style="position: absolute; top: calc(-725px - {100 * i}px); right: calc(745px - {50 * i}px);">
         </div>
     </div>
     """
     st.markdown(html, unsafe_allow_html=True)
 
+x = len(teru_non_sapotan_recommend_list)
+if x > 3:
+    x = 3
+for i in range(0, x):
+    html = f"""
+    <div style="position: relative; height: 100px;">
+        <img src="data:image/png;base64,{teru_non_sapotan_recommend_list[i]}" 
+            width="50" height="50"
+            style="position: absolute; top: calc(-1025px - {100 * i}px); right: calc(210px - {50 * i}px);">
+        </div>
+    </div>
+    """
+    st.markdown(html, unsafe_allow_html=True)
+
+x = len(sapotan_recommend_list)
+if x > 3:
+    x = 3
+for i in range(0, x):
+    html = f"""
+        <div style="position: relative; height: 100px;">
+            <img src="data:image/png;base64,{sapotan_recommend_list[i]}" 
+                width="50" height="50"
+                style="position: absolute; top: calc(-1325px - {100 * i}px); right: calc(545px - {50 * i}px);">
+            </div>
+        </div>
+        """
+    st.markdown(html, unsafe_allow_html=True)
+
+x = len(teru_sapotan_recommend_list)
+if x > 3:
+    x = 3
+for i in range(0, x):
     html = f"""
         <div style="position: relative; height: 100px;">
             <img src="data:image/png;base64,{teru_sapotan_recommend_list[i]}" 
                 width="50" height="50"
-                style="position: absolute; top: calc(-1425px - {200 * i}px); right: calc(10px - {50 * i}px);">
+                style="position: absolute; top: calc(-1625px - {100 * i}px); right: calc(10px - {50 * i}px);">
             </div>
         </div>
         """
