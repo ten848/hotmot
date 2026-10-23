@@ -317,7 +317,16 @@ st.markdown("""
     """,
     unsafe_allow_html= True)
 
-target_area = st.container()
+col1,col2,col3,col4 = st.columns(4)
+with col1:
+    target_area1 = st.container()
+with col2:
+    target_area2 = st.container()
+with col3:
+    target_area3 = st.container()
+with col4:
+    target_area4 = st.container()
+
 
 if st.checkbox("サポタンなし"):
     no_trust = 1
@@ -868,14 +877,14 @@ if x > 3:
     x = 3
 for i in range(0, x):
     html = f"""
-    <div style="position: relative; height: 100px;">
+    <div style="position: relative; height: 0px;">
         <img src="data:image/png;base64,{non_sapotan_recommend_list[i]}" 
             width="50" height="50"
-            style="position: absolute; top: calc(-725px - {100 * i}px); right: calc(745px - {50 * i}px);">
+            style="position: absolute; top: calc(-680px - {16 * i}px); right: calc(100px - {50 * i}px);">
         </div>
     </div>
     """
-    st.markdown(html, unsafe_allow_html=True)
+    target_area1.markdown(html, unsafe_allow_html=True)
 
 x = len(teru_non_sapotan_recommend_list)
 if x > 3:
@@ -885,11 +894,11 @@ for i in range(0, x):
     <div style="position: relative; height: 0px;">
         <img src="data:image/png;base64,{teru_non_sapotan_recommend_list[i]}" 
             width="50" height="50"
-            style="position: absolute; top: calc(-700px - {16 * i}px); right: calc(210px - {50 * i}px);">
+            style="position: absolute; top: calc(-680px - {16 * i}px); right: calc(-200px - {50 * i}px);">
         </div>
     </div>
     """
-    target_area.markdown(html, unsafe_allow_html=True)
+    target_area2.markdown(html, unsafe_allow_html=True)
 
 x = len(sapotan_recommend_list)
 if x > 3:
@@ -899,11 +908,11 @@ for i in range(0, x):
         <div style="position: relative; height: 0px;">
             <img src="data:image/png;base64,{sapotan_recommend_list[i]}" 
                 width="50" height="50"
-                style="position: absolute; top: calc(-700px - {16 * i}px); right: calc(510px - {50 * i}px);">
+                style="position: absolute; top: calc(-680px - {16 * i}px); right: calc(300px - {50 * i}px);">
             </div>
         </div>
         """
-    target_area.markdown(html, unsafe_allow_html=True)
+    target_area3.markdown(html, unsafe_allow_html=True)
 
 x = len(teru_sapotan_recommend_list)
 if x > 3:
@@ -913,10 +922,10 @@ for i in range(0, x):
         <div style="position: relative; height: 0px;">
             <img src="data:image/png;base64,{teru_sapotan_recommend_list[i]}" 
                 width="50" height="50"
-                style="position: absolute; top: calc(-800px - {16 * i}px); right: calc(10px - {50 * i}px);">
+                style="position: absolute; top: calc(-680px - {16 * i}px); right: calc(0px - {50 * i}px);">
         </div>
         """
-    target_area.markdown(html, unsafe_allow_html=True)
+    target_area4.markdown(html, unsafe_allow_html=True)
 
 selected_eng = st.selectbox("select",df["name"])
 selected_jp = translate.get(selected_eng)
@@ -1023,7 +1032,7 @@ for row in url_dt:
     if tag == "1":
         col1.markdown(f"- [{name}]({url})", unsafe_allow_html=True)
     elif tag == "2":
-        target_area.markdown(
+        target_area4.markdown(
     f"""
     <div style="position: absolute; top: 0px; left: 0px;">
         <a href="{url}" target="_blank">{name}</a>
